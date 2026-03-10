@@ -1,0 +1,159 @@
+-- ============================================================
+-- Opportography — Migration 011
+-- Schema additions for Phase 6 (Native American & LGBTQ+ batch)
+-- Run AFTER 010_seed_phase5.sql
+-- Date: 2026-02-26
+-- ============================================================
+
+-- ── Legal Landscape Reference (as of 2026-02-26) ──────────
+-- Embedded here as a permanent record for future maintainers.
+-- This information informed every listing written in Phase 6.
+-- Laws in this area are changing rapidly — verify before updating listings.
+--
+-- NEBRASKA
+--   Nondiscrimination: No explicit state SO/GI law. Attorney General
+--   interprets existing sex discrimination protections to cover SO/GI.
+--   Employment, housing, public accommodations coverage: contested.
+--
+--   Omaha Municipal Ordinance (2012): Prohibits discrimination on the
+--   basis of sexual orientation AND gender identity in employment,
+--   housing, and public accommodations. City of Omaha — file complaints
+--   with the Omaha Human Rights and Relations Department (OHRRD).
+--   This is stronger than Nebraska state law.
+--
+--   Gender-affirming care for minors: LB 574 (2023, upheld by NE
+--   Supreme Court July 2024). Bans gender-affirming surgery for under-19.
+--   Requires 40 hours of therapeutic counseling focused on gender identity,
+--   7-day waiting period after informed consent, and parental consent for
+--   puberty blockers and hormone therapy for minors.
+--   Mental health counseling remains legal.
+--
+--   Trans athlete ban: LB 89 signed June 2025 — bans transgender athletes
+--   from sports within Nebraska.
+--
+--   Name change (adult): District Court petition, must reside in county
+--   1+ year, must be 19+, newspaper publication 4 consecutive weeks,
+--   ~$160 total (filing + publication). Legal Aid of Nebraska has guides.
+--
+--   Gender marker — Driver's license: Broad physician certification required
+--   (not surgery-specific). More accessible than birth certificate change.
+--
+--   Gender marker — Birth certificate: Requires sex reassignment surgery
+--   + notarized physician affidavit. Highly restrictive.
+--
+--   Resource: transnebraska.org (ACLU of Nebraska)
+--
+-- IOWA
+--   Gender identity removed from Iowa Civil Rights Act: July 1, 2025.
+--   Iowa is the first state to remove a previously protected class from
+--   its civil rights code. Gender identity discrimination in employment,
+--   housing, and public accommodations is no longer protected under Iowa
+--   state law. Sexual orientation remains protected.
+--
+--   NOTE: Pre-July 1 gender identity complaints can still be filed with
+--   the Iowa Civil Rights Commission until April 27, 2026.
+--
+--   Federal protections: Title VII (applies to employers with 15+ employees)
+--   still protects transgender workers nationwide per U.S. Supreme Court.
+--   The Iowa Civil Rights Act (4+ employees) no longer provides this coverage.
+--
+--   Gender-affirming care for minors: Banned (2023). Puberty blockers,
+--   hormone therapy, and surgery for gender transition are prohibited for
+--   minors in Iowa.
+--
+--   Gender-affirming care on Medicaid: Banned as of July 1, 2025.
+--
+--   Birth certificate gender marker: SF418 (effective July 1, 2025) —
+--   Iowa no longer issues gender marker amendments on birth certificates.
+--   Non-retroactive: previously changed certificates remain valid.
+--
+--   Driver's license gender marker: Must match birth certificate. Since BC
+--   changes no longer issued, gender marker changes on Iowa DLs are
+--   effectively blocked for those born in Iowa.
+--
+--   Legal name change: Still legal in Iowa. Courts cannot deny solely
+--   because the person is transgender.
+--
+--   Resource: oneiowa.org/july-1st-2025-implementation-guide/
+--
+-- FEDERAL
+--   Passport gender marker: Currently banned under executive order (being
+--   litigated as of 2026-02-26). Status may change — verify with
+--   transnebraska.org or Lambda Legal before advising.
+--
+-- TRIBAL
+--   Tribal services often have enrollment requirements (must be an enrolled
+--   member of a specific tribe or meet blood quantum thresholds). These are
+--   expressions of tribal sovereignty — not barriers. Document eligibility
+--   exactly as stated by tribal governments. Do not generalize.
+-- ============================================================
+
+-- ── Add identity_focus field ──────────────────────────────
+-- Phase 6 introduces resources specifically serving Native American
+-- and LGBTQ+ communities. The existing identity_tags array (e.g.,
+-- ['native_american', 'lgbtq']) enables broad filtering, but cannot
+-- capture important nuance needed for these communities:
+--   • Is this for enrolled tribal members only, or all urban Natives?
+--   • Is this for transgender people specifically, or all LGBTQ+?
+--   • Is it open to allies and family members?
+--   • What specific sub-identities does the organization serve?
+--
+-- identity_focus captures this machine-queryable nuance as structured JSONB,
+-- enabling the frontend to surface precisely relevant listings without
+-- forcing users to scroll through resources that don't apply to their
+-- specific situation.
+--
+-- Shape when populated:
+-- {
+--   "primary_community": "native_american | lgbtq | two_spirit | intersectional",
+--   "specific_identities": [
+--     "transgender",
+--     "Omaha Tribe enrolled members",
+--     "LGBTQ+ youth 13-24",
+--     "Two-Spirit",
+--     "urban Native",
+--     "bisexual",
+--     "people living with HIV/AIDS",
+--     "gender non-conforming"
+--   ],
+--   "open_to_allies": true,
+--   "notes": "Open to all Native Americans regardless of tribal enrollment"
+-- }
+--
+-- Rules:
+--   • Only set primary_community to "two_spirit" if the organization
+--     explicitly uses and centers that cultural identity. Two-Spirit is
+--     a distinct Indigenous cultural concept — not a synonym for
+--     "Native + LGBTQ+."
+--   • "open_to_allies" means non-community-members are explicitly welcome
+--     (e.g., family members of LGBTQ+ people, non-Native people seeking
+--     to understand resources). Omit or set false if not confirmed.
+--   • specific_identities should reflect the organization's own language
+--     and framing — not interpretations or assumptions.
+--   • Tribal eligibility notes in "notes" should be exact, factual, and
+--     sourced from the tribal government's own materials.
+--   • Leave identity_focus null for resources in Phases 1-5 that were
+--     not explicitly designed for these communities — even if they happen
+--     to serve them. Only populate for resources where community focus is
+--     the explicit, primary purpose.
+
+alter table public.opportunities
+  add column if not exists identity_focus jsonb;
+
+-- ── GIN index on identity_focus ───────────────────────────
+-- Enables efficient filtering, for example:
+--   • All resources for transgender individuals specifically
+--   • All resources open to allies
+--   • All resources serving enrolled tribal members
+
+create index if not exists idx_opportunities_identity_focus
+  on public.opportunities using gin (identity_focus);
+
+-- ── Documentation ─────────────────────────────────────────
+-- identity_focus: Structured JSON for community-specific filtering.
+--   Supplements identity_tags (broad array filtering) with nuanced
+--   sub-community data: specific identities served, tribal enrollment
+--   requirements, ally access, and verification notes.
+--   Null for resources not primarily designed for specific identity communities.
+--   Do NOT infer identity_focus from demographics alone.
+-- ============================================================
