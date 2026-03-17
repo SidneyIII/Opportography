@@ -13,6 +13,7 @@ const typeColors: Record<OpportunityType, string> = {
   college_access: 'bg-indigo-400/15 text-indigo-400 border border-indigo-400/30',
   job: 'bg-sky-400/15 text-sky-400 border border-sky-400/30',
   networking: 'bg-purple-400/15 text-purple-400 border border-purple-400/30',
+  community: 'bg-fuchsia-400/15 text-fuchsia-400 border border-fuchsia-400/30',
 }
 
 export function TypeBadge({ type }: { type: OpportunityType }) {

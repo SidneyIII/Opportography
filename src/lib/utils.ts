@@ -67,6 +67,7 @@ const typeLabels: Record<OpportunityType, string> = {
   college_access: 'College Access Program',
   job: 'Jobs',
   networking: 'Networking & Community',
+  community: 'Community & Clubs',
 }
 
 export function getTypeLabel(type: OpportunityType): string {

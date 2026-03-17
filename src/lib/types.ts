@@ -10,6 +10,7 @@ export type OpportunityType =
   | 'college_access'
   | 'job'
   | 'networking'
+  | 'community'
 
 export type IdentityTag =
   | 'low_income'
