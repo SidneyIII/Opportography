@@ -7,6 +7,8 @@ export type OpportunityType =
   | 'free_resource'
   | 'workshop'
   | 'college_access'
+  | 'job'
+  | 'networking'
 
 export type IdentityTag =
   | 'low_income'

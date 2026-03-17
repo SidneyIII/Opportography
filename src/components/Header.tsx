@@ -57,7 +57,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-navy-600 glass">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+      <div className="relative mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link
           href="/"
           className="text-slate-50 transition-colors hover:text-cyan-400"
@@ -69,8 +69,8 @@ export function Header() {
           </svg>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden gap-6 md:flex">
+        {/* Desktop nav — absolutely centered so logo and right side don't affect its position */}
+        <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-6 md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.href}

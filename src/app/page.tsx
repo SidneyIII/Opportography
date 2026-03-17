@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import Link from 'next/link'
 import { getFeaturedOpportunities, getAllOpportunities } from '@/lib/queries'
 import { allIdentityTags, getIdentityLabel, getIdentitySlug, getTypeLabel, allTypes } from '@/lib/utils'
