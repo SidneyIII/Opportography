@@ -57,6 +57,7 @@ export function getIdentityFromSlug(slug: string): IdentityTag | null {
 
 const typeLabels: Record<OpportunityType, string> = {
   scholarship: 'Scholarship',
+  institutional_scholarship: 'Institutional Scholarship',
   internship: 'Internship',
   summer_program: 'Summer Program',
   mentorship: 'Mentorship',

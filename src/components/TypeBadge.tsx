@@ -3,6 +3,7 @@ import { getTypeLabel } from '@/lib/utils'
 
 const typeColors: Record<OpportunityType, string> = {
   scholarship: 'bg-emerald-400/15 text-emerald-400 border border-emerald-400/30',
+  institutional_scholarship: 'bg-lime-400/15 text-lime-400 border border-lime-400/30',
   internship: 'bg-cyan-400/15 text-cyan-400 border border-cyan-400/30',
   summer_program: 'bg-amber-400/15 text-amber-400 border border-amber-400/30',
   mentorship: 'bg-violet-400/15 text-violet-400 border border-violet-400/30',

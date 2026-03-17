@@ -1,5 +1,6 @@
 export type OpportunityType =
   | 'scholarship'
+  | 'institutional_scholarship'
   | 'internship'
   | 'summer_program'
   | 'mentorship'
