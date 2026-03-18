@@ -12,6 +12,7 @@ export type OpportunityType =
   | 'networking'
   | 'community'
   | 'scientific_exploration'
+  | 'tutoring'
 
 export type IdentityTag =
   | 'low_income'

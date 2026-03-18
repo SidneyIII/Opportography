@@ -69,6 +69,7 @@ const typeLabels: Record<OpportunityType, string> = {
   networking: 'Networking & Community',
   community: 'Community Events & Clubs',
   scientific_exploration: 'Scientific Exploration',
+  tutoring: 'Tutoring & Academic Support',
 }
 
 export function getTypeLabel(type: OpportunityType): string {

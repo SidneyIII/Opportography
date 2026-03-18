@@ -15,6 +15,7 @@ const typeColors: Record<OpportunityType, string> = {
   networking: 'bg-purple-400/15 text-purple-400 border border-purple-400/30',
   community: 'bg-fuchsia-400/15 text-fuchsia-400 border border-fuchsia-400/30',
   scientific_exploration: 'bg-green-400/15 text-green-400 border border-green-400/30',
+  tutoring: 'bg-yellow-400/15 text-yellow-400 border border-yellow-400/30',
 }
 
 export function TypeBadge({ type }: { type: OpportunityType }) {
