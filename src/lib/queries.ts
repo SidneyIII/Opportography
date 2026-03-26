@@ -1,11 +1,27 @@
 import { supabase } from './supabase'
-import { Opportunity, IdentityTag, OpportunityType } from './types'
+import { Opportunity, IdentityTag, OpportunityType, MetroArea } from './types'
 
-export async function getAllOpportunities(): Promise<Opportunity[]> {
+export async function getMetroAreas(): Promise<MetroArea[]> {
+  const { data, error } = await supabase
+    .from('metro_areas')
+    .select('*')
+    .order('is_flagship', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching metro areas:', error)
+    return []
+  }
+  return data as MetroArea[]
+}
+
+// Omaha–Council Bluffs is metro_area_id=1 (the only active metro at launch).
+// Pass metroId explicitly when multi-metro support is needed; defaults to 1.
+export async function getAllOpportunities(metroId = 1): Promise<Opportunity[]> {
   const { data, error } = await supabase
     .from('opportunities')
     .select('*')
     .eq('is_active', true)
+    .eq('metro_area_id', metroId)
     .order('deadline', { ascending: true, nullsFirst: false })
 
   if (error) {
@@ -15,12 +31,13 @@ export async function getAllOpportunities(): Promise<Opportunity[]> {
   return data as Opportunity[]
 }
 
-export async function getFeaturedOpportunities(): Promise<Opportunity[]> {
+export async function getFeaturedOpportunities(metroId = 1): Promise<Opportunity[]> {
   const { data, error } = await supabase
     .from('opportunities')
     .select('*')
     .eq('is_active', true)
     .eq('is_featured', true)
+    .eq('metro_area_id', metroId)
     .order('deadline', { ascending: true, nullsFirst: false })
     .limit(4)
 

@@ -1,4 +1,4 @@
-import { IdentityTag, OpportunityType, CategoryTag, Opportunity } from './types'
+import { IdentityTag, OpportunityType, CategoryTag, Opportunity, AudienceType } from './types'
 
 export function formatDeadline(deadline: string | null): string {
   if (!deadline) return 'Rolling / Open'
@@ -137,6 +137,48 @@ export function sortByDeadline(opps: Opportunity[]): Opportunity[] {
     if (!b.deadline) return -1
     return new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
   })
+}
+
+const gradeLevelLabels: Record<string, string> = {
+  '8': '8th Grade',
+  '9': '9th Grade',
+  '10': '10th Grade',
+  '11': '11th Grade',
+  '12': '12th Grade',
+  college_freshman: 'College Freshman',
+}
+
+/** Returns a display label for a grade level value, or null for non-K-12 strings. */
+export function formatGradeLevel(g: string): string | null {
+  return gradeLevelLabels[g] ?? null
+}
+
+const audienceTypeLabels: Record<AudienceType, string> = {
+  k12_elementary: 'Elementary School',
+  k12_middle: 'Middle School',
+  k12_high_school: 'High School',
+  k12_all: 'K–12 Students',
+  college_undergraduate: 'College / Undergraduate',
+  college_graduate: 'Graduate Students',
+  college_all: 'College Students',
+  young_adult: 'Young Adults',
+  adult_general: 'Adults',
+  adult_workforce: 'Adult Workforce',
+  adult_50_plus: 'Adults 50+',
+  veteran: 'Veterans',
+  parent_guardian: 'Parents & Guardians',
+  family: 'Families',
+  senior: 'Seniors',
+  community_all: 'Open to All',
+  professional: 'Professionals',
+  immigrant_refugee: 'Immigrants & Refugees',
+  indigenous: 'Indigenous Communities',
+  lgbtq_plus: 'LGBTQ+ Community',
+  low_income: 'Low-Income Individuals',
+}
+
+export function getAudienceLabel(type: AudienceType): string {
+  return audienceTypeLabels[type] ?? type
 }
 
 export const allIdentityTags: IdentityTag[] = Object.keys(identityLabels) as IdentityTag[]

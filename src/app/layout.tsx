@@ -19,12 +19,12 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'Opportography — Find Opportunities Near You',
+  title: 'Opportography — Local Opportunity Discovery for Every City',
   description:
-    'Discover scholarships, internships, programs, and resources for underserved students in the Omaha/Council Bluffs area. No student should miss out because they didn\'t know.',
+    'Opportography maps the complete opportunity landscape of your city — jobs, scholarships, career pathways, community resources, and more. Built for the communities that need it most.',
   openGraph: {
     title: 'Opportography',
-    description: 'Map every opportunity for students who need it most.',
+    description: 'The opportunity infrastructure your community deserves.',
     type: 'website',
   },
 }

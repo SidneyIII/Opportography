@@ -1,15 +1,17 @@
 export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
-import { getFeaturedOpportunities, getAllOpportunities } from '@/lib/queries'
+import { getFeaturedOpportunities, getAllOpportunities, getMetroAreas } from '@/lib/queries'
 import { allIdentityTags, getIdentityLabel, getIdentitySlug, getTypeLabel, allTypes } from '@/lib/utils'
 import { OpportunityCard } from '@/components/OpportunityCard'
 import { DemoMatchBox } from '@/components/DemoMatchBox'
+import { MetroSelector } from '@/components/MetroSelector'
 
 export default async function HomePage() {
-  const [featured, all] = await Promise.all([
+  const [featured, all, metros] = await Promise.all([
     getFeaturedOpportunities(),
     getAllOpportunities(),
+    getMetroAreas(),
   ])
 
   return (
@@ -17,10 +19,12 @@ export default async function HomePage() {
       {/* Hero */}
       <section className="relative px-4 py-24 md:py-40">
         <div className="mx-auto max-w-4xl text-center">
-          {/* Live count pill */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1.5 text-xs font-medium text-cyan-400">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400" />
-            {all.length}+ opportunities mapped in Omaha / Council Bluffs
+          {/* Metro selector pill — city-aware, Coming Soon for inactive metros */}
+          <div className="mb-6 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+            <MetroSelector metros={metros} />
+            <span className="text-xs text-slate-600">
+              {all.length}+ verified opportunities mapped
+            </span>
           </div>
 
           <h1 className="font-display mt-2 text-5xl font-bold leading-[1.1] tracking-tight text-slate-50 md:text-7xl">
@@ -29,7 +33,7 @@ export default async function HomePage() {
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-400 md:text-xl">
             Opportunity + Cartography. Like a map for your future — every scholarship,
-            internship, program, and resource in the Omaha area, all in one place.
+            internship, program, and resource in your city — all in one place.
           </p>
 
           <blockquote className="mx-auto mt-8 max-w-xl text-sm italic text-slate-500">

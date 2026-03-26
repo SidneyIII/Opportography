@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getOpportunityById, getRelatedOpportunities, getAllOpportunityIds } from '@/lib/queries'
-import { formatDeadline, getCategoryLabel, getIdentitySlug } from '@/lib/utils'
+import { formatDeadline, getCategoryLabel, getIdentitySlug, formatGradeLevel, getAudienceLabel } from '@/lib/utils'
 import { TypeBadge } from '@/components/TypeBadge'
 import { IdentityBadge } from '@/components/IdentityBadge'
 import { BookmarkButton } from '@/components/BookmarkButton'
@@ -71,18 +71,30 @@ export default async function OpportunityDetailPage({
               </h2>
               <p className="font-medium text-slate-100">{formatDeadline(opp.deadline)}</p>
             </div>
-            {opp.grade_levels.length > 0 && (
-              <div>
-                <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Grade Levels
-                </h2>
-                <p className="text-slate-300">
-                  {opp.grade_levels
-                    .map((g) => (g === 'college_freshman' ? 'College Freshman' : `${g}th Grade`))
-                    .join(', ')}
-                </p>
-              </div>
-            )}
+            {(() => {
+              const gradLabels = opp.grade_levels.map(formatGradeLevel).filter(Boolean) as string[]
+              if (gradLabels.length > 0) {
+                return (
+                  <div>
+                    <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Grade Levels
+                    </h2>
+                    <p className="text-slate-300">{gradLabels.join(', ')}</p>
+                  </div>
+                )
+              }
+              if (opp.audience_type) {
+                return (
+                  <div>
+                    <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Audience
+                    </h2>
+                    <p className="text-slate-300">{getAudienceLabel(opp.audience_type)}</p>
+                  </div>
+                )
+              }
+              return null
+            })()}
           </div>
 
           {opp.compensation_type && opp.compensation_amount && (

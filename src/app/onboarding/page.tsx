@@ -7,7 +7,6 @@ type Step = 1 | 2 | 3 | 4 | 5 | 6
 const TOTAL_STEPS = 6
 
 const AGE_RANGES = ['Under 18', '18-24', '25-34', '35-44', '45-54', '55+']
-const CITIES = ['Omaha', 'Council Bluffs', 'Bellevue', 'Papillion', 'La Vista', 'Other']
 const STATUSES = [
   { value: 'working', label: 'Working' },
   { value: 'in_school', label: 'In School' },
@@ -67,7 +66,7 @@ export default function OnboardingPage() {
 
   // Step 1 - Basics
   const [city, setCity] = useState('')
-  const [otherCity, setOtherCity] = useState('')
+  const [stateField, setStateField] = useState('')
   const [ageRange, setAgeRange] = useState('')
   const [zip, setZip] = useState('')
 
@@ -98,14 +97,8 @@ export default function OnboardingPage() {
         const p = data.profile
 
         // City
-        if (p.city) {
-          if (CITIES.includes(p.city)) {
-            setCity(p.city)
-          } else {
-            setCity('Other')
-            setOtherCity(p.city)
-          }
-        }
+        if (p.city) setCity(p.city)
+        if (p.state) setStateField(p.state)
 
         // Age range — reverse the lowercase+underscore transform
         if (p.age_range) {
@@ -154,7 +147,6 @@ export default function OnboardingPage() {
 
   async function handleFinish() {
     setSaving(true)
-    const resolvedCity = city === 'Other' ? otherCity : city
     const allLanguages = [
       ...languages.map((l) => l.toLowerCase()),
       ...(otherLanguage ? [otherLanguage.toLowerCase()] : []),
@@ -165,8 +157,8 @@ export default function OnboardingPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         age_range: ageRange ? ageRange.toLowerCase().replace(/ /g, '_').replace('+', '') : null,
-        city: resolvedCity || null,
-        state: ['Omaha', 'Bellevue', 'Papillion', 'La Vista'].includes(resolvedCity) ? 'NE' : 'IA',
+        city: city || null,
+        state: stateField || null,
         zip_code: zip || null,
         current_status: currentStatus,
         education_level: education || null,
@@ -209,35 +201,31 @@ export default function OnboardingPage() {
             <p className="mb-6 text-slate-400">This helps us find opportunities near you.</p>
 
             <div className="space-y-6">
-              <div>
-                <label className="mb-3 block text-sm font-medium text-slate-300">
-                  Your city
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {CITIES.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => setCity(c)}
-                      className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                        city === c
-                          ? 'bg-cyan-400 text-navy-950'
-                          : 'border border-navy-600 text-slate-400 hover:border-cyan-400/50 hover:text-cyan-400'
-                      }`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-                {city === 'Other' && (
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="mb-1.5 block text-sm font-medium text-slate-300">
+                    City
+                  </label>
                   <input
                     type="text"
-                    value={otherCity}
-                    onChange={(e) => setOtherCity(e.target.value)}
-                    placeholder="Enter your city"
-                    className="mt-3 w-full rounded-lg border border-navy-600 bg-navy-900 px-4 py-3 text-slate-100 placeholder-slate-500 focus:border-cyan-400 focus:outline-none"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="e.g. Omaha"
+                    className="w-full rounded-lg border border-navy-600 bg-navy-900 px-4 py-3 text-slate-100 placeholder-slate-500 focus:border-cyan-400 focus:outline-none"
                   />
-                )}
+                </div>
+                <div className="w-28">
+                  <label className="mb-1.5 block text-sm font-medium text-slate-300">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    value={stateField}
+                    onChange={(e) => setStateField(e.target.value.toUpperCase().substring(0, 2))}
+                    placeholder="NE"
+                    className="w-full rounded-lg border border-navy-600 bg-navy-900 px-4 py-3 text-slate-100 placeholder-slate-500 focus:border-cyan-400 focus:outline-none"
+                  />
+                </div>
               </div>
 
               <div>

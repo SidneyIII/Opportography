@@ -18,6 +18,16 @@ export function Footer() {
             <Link href="/support" className="transition-colors hover:text-cyan-400">Support</Link>
           </nav>
         </div>
+        <div className="mt-6 border-t border-navy-800 pt-4 text-center text-xs text-slate-600">
+          Currently serving:{' '}
+          <span className="text-slate-500">Omaha–Council Bluffs Metro</span>
+          {' '}|{' '}
+          <span>Akron Metro (Coming Soon)</span>
+          {' '}·{' '}
+          <Link href="/support" className="transition-colors hover:text-slate-400">
+            Bring Opportography to your city
+          </Link>
+        </div>
       </div>
     </footer>
   )

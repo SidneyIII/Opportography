@@ -40,7 +40,42 @@ export type CategoryTag =
   | 'trades'
   | 'athletics'
 
-export type GradeLevel = '9' | '10' | '11' | '12' | 'college_freshman'
+export type GradeLevel = '8' | '9' | '10' | '11' | '12' | 'college_freshman'
+
+export type AudienceType =
+  | 'k12_elementary'
+  | 'k12_middle'
+  | 'k12_high_school'
+  | 'k12_all'
+  | 'college_undergraduate'
+  | 'college_graduate'
+  | 'college_all'
+  | 'young_adult'
+  | 'adult_general'
+  | 'adult_workforce'
+  | 'adult_50_plus'
+  | 'veteran'
+  | 'parent_guardian'
+  | 'family'
+  | 'senior'
+  | 'community_all'
+  | 'professional'
+  | 'immigrant_refugee'
+  | 'indigenous'
+  | 'lgbtq_plus'
+  | 'low_income'
+
+export interface MetroArea {
+  id: number
+  name: string
+  short_name: string
+  slug: string
+  region: string
+  country: string
+  is_active: boolean
+  is_flagship: boolean
+  population_estimate: number | null
+}
 
 export type DataConfidence = 'high' | 'medium' | 'low'
 export type VerificationStatus = 'verified' | 'needs_confirmation'
@@ -141,6 +176,12 @@ export interface Opportunity {
 
   // Identity focus (Phase 6 — community-specific filtering for NA and LGBTQ+ resources)
   identity_focus: IdentityFocus | null
+
+  // Metro area (Phase 16 — multi-city architecture)
+  metro_area_id: number
+
+  // Audience type (Phase 16 — replaces broken grade_level display for non-K-12)
+  audience_type: AudienceType | null
 
   // Lifecycle
   is_active: boolean

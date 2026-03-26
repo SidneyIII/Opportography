@@ -81,7 +81,7 @@ export function DemoMatchBox({ totalOpportunities }: { totalOpportunities: numbe
         </h2>
         <p className="mt-3 text-slate-400">
           Describe who you are and what you&apos;re looking for. Our AI will match you with
-          real, verified opportunities across Omaha &amp; Council Bluffs.
+          real, verified opportunities in your city.
         </p>
       </div>
 

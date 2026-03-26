@@ -74,6 +74,7 @@ export function OpportunityFilters({
         className={selectClass}
       >
         <option value="">All Grades</option>
+        <option value="8">8th Grade</option>
         <option value="9">9th Grade</option>
         <option value="10">10th Grade</option>
         <option value="11">11th Grade</option>
