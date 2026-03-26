@@ -11,18 +11,19 @@ const STORAGE_KEY = 'opportography-selected-metro'
 
 export function MetroSelector({ metros }: MetroSelectorProps) {
   const flagship = metros.find((m) => m.is_flagship) ?? metros[0]
-  const [selected, setSelected] = useState<MetroArea>(flagship)
+  const [selected, setSelected] = useState<MetroArea | undefined>(flagship)
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   // Restore from localStorage on mount
   useEffect(() => {
+    if (!flagship) return
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
       const found = metros.find((m) => m.slug === stored)
       if (found?.is_active) setSelected(found)
     }
-  }, [metros])
+  }, [metros, flagship])
 
   // Close on outside click
   useEffect(() => {
@@ -34,6 +35,8 @@ export function MetroSelector({ metros }: MetroSelectorProps) {
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
+
+  if (!selected) return null
 
   function choose(metro: MetroArea) {
     if (!metro.is_active) return
