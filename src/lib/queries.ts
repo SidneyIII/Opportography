@@ -1,8 +1,12 @@
 import { supabase } from './supabase'
+import { createSupabaseServiceClient } from './supabase-server'
 import { Opportunity, IdentityTag, OpportunityType, MetroArea } from './types'
 
 export async function getMetroAreas(): Promise<MetroArea[]> {
-  const { data, error } = await supabase
+  // Use service-role client to bypass RLS — metro_areas is public data
+  // and the anon key may lack SELECT grants on this table in some environments.
+  const client = createSupabaseServiceClient()
+  const { data, error } = await client
     .from('metro_areas')
     .select('*')
     .order('is_flagship', { ascending: false })
@@ -12,6 +16,18 @@ export async function getMetroAreas(): Promise<MetroArea[]> {
     return []
   }
   return data as MetroArea[]
+}
+
+export async function getMetroAreaBySlug(slug: string): Promise<MetroArea | null> {
+  const client = createSupabaseServiceClient()
+  const { data, error } = await client
+    .from('metro_areas')
+    .select('*')
+    .eq('slug', slug)
+    .single()
+
+  if (error) return null
+  return data as MetroArea
 }
 
 // Pass metroId to scope to a specific city. Omit for cross-city queries (counts, featured showcase).
@@ -50,17 +66,6 @@ export async function getFeaturedOpportunities(metroId?: number): Promise<Opport
     return []
   }
   return data as Opportunity[]
-}
-
-export async function getMetroAreaBySlug(slug: string): Promise<MetroArea | null> {
-  const { data, error } = await supabase
-    .from('metro_areas')
-    .select('*')
-    .eq('slug', slug)
-    .single()
-
-  if (error) return null
-  return data as MetroArea
 }
 
 export async function getOpportunityById(id: string): Promise<Opportunity | null> {
