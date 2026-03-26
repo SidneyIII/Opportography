@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { TypeBadge } from '@/components/TypeBadge'
 
@@ -22,6 +22,8 @@ interface Match {
 
 type State = 'idle' | 'loading' | 'results' | 'rate_limited' | 'already_used'
 
+const METRO_STORAGE_KEY = 'opportography-selected-metro'
+
 export function DemoMatchBox({ totalOpportunities }: { totalOpportunities: number }) {
   const [input, setInput] = useState('')
   const [state, setState] = useState<State>(() => {
@@ -32,6 +34,16 @@ export function DemoMatchBox({ totalOpportunities }: { totalOpportunities: numbe
   })
   const [matches, setMatches] = useState<Match[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [metroSlug, setMetroSlug] = useState<string | null>(null)
+  const [metroName, setMetroName] = useState<string | null>(null)
+
+  // Read selected metro from localStorage (set by MetroSelector)
+  useEffect(() => {
+    const slug = localStorage.getItem(METRO_STORAGE_KEY)
+    const name = localStorage.getItem(METRO_STORAGE_KEY + '-name')
+    if (slug) setMetroSlug(slug)
+    if (name) setMetroName(name)
+  }, [])
 
   async function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault()
@@ -44,7 +56,7 @@ export function DemoMatchBox({ totalOpportunities }: { totalOpportunities: numbe
       const res = await fetch('/api/match/demo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input }),
+        body: JSON.stringify({ input, metroSlug }),
       })
 
       const data = await res.json()
@@ -81,7 +93,7 @@ export function DemoMatchBox({ totalOpportunities }: { totalOpportunities: numbe
         </h2>
         <p className="mt-3 text-slate-400">
           Describe who you are and what you&apos;re looking for. Our AI will match you with
-          real, verified opportunities in your city.
+          real, verified opportunities{metroName ? ` in ${metroName}` : ' in your city'}.
         </p>
       </div>
 

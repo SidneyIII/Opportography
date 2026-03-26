@@ -25,6 +25,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     const raw: string = body?.input ?? ''
+    const metroSlug: string | undefined = body?.metroSlug ?? undefined
 
     // Validate input
     if (!raw || typeof raw !== 'string') {
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
     }
 
     // Run matching pipeline
-    const matches = await runDemoMatch(sanitized)
+    const matches = await runDemoMatch(sanitized, metroSlug)
 
     const response = NextResponse.json({ matches, remaining })
 

@@ -42,6 +42,7 @@ export function MetroSelector({ metros }: MetroSelectorProps) {
     if (!metro.is_active) return
     setSelected(metro)
     localStorage.setItem(STORAGE_KEY, metro.slug)
+    localStorage.setItem(STORAGE_KEY + '-name', metro.name)
     setOpen(false)
   }
 

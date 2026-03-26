@@ -14,15 +14,16 @@ export async function getMetroAreas(): Promise<MetroArea[]> {
   return data as MetroArea[]
 }
 
-// Omaha–Council Bluffs is metro_area_id=1 (the only active metro at launch).
-// Pass metroId explicitly when multi-metro support is needed; defaults to 1.
-export async function getAllOpportunities(metroId = 1): Promise<Opportunity[]> {
-  const { data, error } = await supabase
+// Pass metroId to scope to a specific city. Omit for cross-city queries (counts, featured showcase).
+export async function getAllOpportunities(metroId?: number): Promise<Opportunity[]> {
+  let query = supabase
     .from('opportunities')
     .select('*')
     .eq('is_active', true)
-    .eq('metro_area_id', metroId)
-    .order('deadline', { ascending: true, nullsFirst: false })
+
+  if (metroId !== undefined) query = query.eq('metro_area_id', metroId)
+
+  const { data, error } = await query.order('deadline', { ascending: true, nullsFirst: false })
 
   if (error) {
     console.error('Error fetching opportunities:', error)
@@ -31,13 +32,16 @@ export async function getAllOpportunities(metroId = 1): Promise<Opportunity[]> {
   return data as Opportunity[]
 }
 
-export async function getFeaturedOpportunities(metroId = 1): Promise<Opportunity[]> {
-  const { data, error } = await supabase
+export async function getFeaturedOpportunities(metroId?: number): Promise<Opportunity[]> {
+  let query = supabase
     .from('opportunities')
     .select('*')
     .eq('is_active', true)
     .eq('is_featured', true)
-    .eq('metro_area_id', metroId)
+
+  if (metroId !== undefined) query = query.eq('metro_area_id', metroId)
+
+  const { data, error } = await query
     .order('deadline', { ascending: true, nullsFirst: false })
     .limit(4)
 
@@ -46,6 +50,17 @@ export async function getFeaturedOpportunities(metroId = 1): Promise<Opportunity
     return []
   }
   return data as Opportunity[]
+}
+
+export async function getMetroAreaBySlug(slug: string): Promise<MetroArea | null> {
+  const { data, error } = await supabase
+    .from('metro_areas')
+    .select('*')
+    .eq('slug', slug)
+    .single()
+
+  if (error) return null
+  return data as MetroArea
 }
 
 export async function getOpportunityById(id: string): Promise<Opportunity | null> {

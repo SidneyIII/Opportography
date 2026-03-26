@@ -206,7 +206,8 @@ export function expandSearchKeywords(searchContext: string): string[] {
 export async function preFilter(
   profile: UserProfile | null,
   demoInput?: string,
-  searchContext?: string
+  searchContext?: string,
+  metroId?: number
 ): Promise<CandidateOpportunity[]> {
   const supabase = createSupabaseServiceClient()
 
@@ -216,9 +217,12 @@ export async function preFilter(
 
   const LIMIT = 40 // base pool cap; keyword matches are always added on top
 
-  // Base query: all active opportunities, randomized so every run sees variety
-  const baseQuery = () =>
-    supabase.from('opportunities').select('*').eq('is_active', true)
+  // Base query: all active opportunities, scoped to metro when provided
+  const baseQuery = () => {
+    let q = supabase.from('opportunities').select('*').eq('is_active', true)
+    if (metroId !== undefined) q = q.eq('metro_area_id', metroId)
+    return q
+  }
 
   // For demo input: keyword-expand the raw input so relevant records are always included,
   // then backfill with random records up to 60 total.
@@ -499,9 +503,22 @@ export function calibrate(
  * Run the full matching pipeline for a demo (unauthenticated) request.
  * Takes raw text input, returns up to 8 matched opportunities.
  */
-export async function runDemoMatch(rawInput: string): Promise<MatchResult[]> {
+export async function runDemoMatch(rawInput: string, metroSlug?: string): Promise<MatchResult[]> {
   const serialized = serializeDemoInput(rawInput)
-  const candidates = await preFilter(null, rawInput)
+
+  let metroId: number | undefined
+  if (metroSlug) {
+    const supabase = createSupabaseServiceClient()
+    const { data } = await supabase
+      .from('metro_areas')
+      .select('id')
+      .eq('slug', metroSlug)
+      .eq('is_active', true)
+      .single()
+    if (data) metroId = data.id
+  }
+
+  const candidates = await preFilter(null, rawInput, undefined, metroId)
 
   if (candidates.length === 0) return []
 
