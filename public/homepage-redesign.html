@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opportography — Local Opportunity Discovery for Every City</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ─── TOKENS ─────────────────────────────────────────── */
+    :root {
+      --navy-950: #060a14;
+      --navy-900: #0a0f1e;
+      --navy-800: #111827;
+      --navy-700: #1a2540;
+      --navy-600: #1e2d50;
+      --accent:   #1a6fff;
+      --accent-dim:    rgba(26,111,255,0.10);
+      --accent-border: rgba(26,111,255,0.22);
+      --accent-bright: rgba(26,111,255,0.65);
+      --text-1: #e8edf8;
+      --text-2: #b8c2d8;
+      --text-3: #6b7a9e;
+      --text-4: #3a4560;
+      --serif: 'Playfair Display', Georgia, serif;
+      --sans:  'DM Sans', system-ui, sans-serif;
+      --mono:  'DM Mono', 'Courier New', monospace;
+    }
+
+    /* ─── RESET ──────────────────────────────────────────── */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--navy-900);
+      color: var(--text-1);
+      font-family: var(--sans);
+      line-height: 1.6;
+      overflow-x: hidden;
+      cursor: none;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ─── CURSOR ─────────────────────────────────────────── */
+    #cur-dot {
+      position: fixed; width: 6px; height: 6px;
+      background: var(--accent); border-radius: 50%;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%,-50%);
+      transition: transform .15s ease, opacity .2s ease;
+    }
+    #cur-ring {
+      position: fixed; width: 28px; height: 28px;
+      border: 1px solid rgba(26,111,255,.5); border-radius: 50%;
+      pointer-events: none; z-index: 9998;
+      transform: translate(-50%,-50%);
+      transition: width .25s ease, height .25s ease,
+                  background .25s ease, border-color .25s ease;
+    }
+    body.hov #cur-dot  { transform: translate(-50%,-50%) scale(0); }
+    body.hov #cur-ring {
+      width: 44px; height: 44px;
+      background: rgba(26,111,255,.06);
+      border-color: rgba(26,111,255,.7);
+    }
+
+    /* ─── CANVAS ─────────────────────────────────────────── */
+    #stars {
+      position: fixed; inset: 0;
+      z-index: 0; pointer-events: none;
+    }
+
+    /* ─── PAGE SHELL ─────────────────────────────────────── */
+    .page { position: relative; z-index: 1; }
+
+    /* ─── NAV ────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; height: 72px;
+      display: flex; align-items: center; padding: 0 6vw;
+      z-index: 200;
+      border-bottom: 1px solid transparent;
+      transition: background .3s ease, border-color .3s ease, backdrop-filter .3s ease;
+    }
+    nav.scrolled {
+      background: rgba(10,15,30,.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom-color: rgba(26,111,255,.12);
+    }
+    .nav-brand { display:flex; flex-direction:column; flex-shrink:0; }
+    .nav-brand-name {
+      font-family: var(--serif); font-size: 1.15rem; font-weight: 700;
+      letter-spacing: .02em; line-height: 1.1;
+    }
+    .nav-brand-stat {
+      font-family: var(--mono); font-size: .6rem;
+      color: var(--accent); letter-spacing: .08em;
+    }
+    .nav-center {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 32px; list-style: none;
+    }
+    .nav-center a {
+      font-family: var(--sans); font-size: .72rem; font-weight: 500;
+      text-transform: small-caps; letter-spacing: .12em;
+      color: var(--text-2);
+      transition: color .2s;
+    }
+    .nav-center a:hover { color: var(--text-1); }
+    .nav-auth { margin-left: auto; display:flex; align-items:center; gap:16px; }
+    .nav-signin { font-size: .82rem; color: var(--text-2); transition: color .2s; }
+    .nav-signin:hover { color: var(--text-1); }
+    .nav-signup {
+      font-family: var(--sans); font-size: .75rem; font-weight: 500;
+      background: var(--accent); color: #fff;
+      padding: 7px 16px; border-radius: 4px;
+      transition: background .2s;
+    }
+    .nav-signup:hover { background: #2277ff; }
+
+    /* ─── HERO ───────────────────────────────────────────── */
+    .hero {
+      position: relative; height: 100vh;
+      display: flex; align-items: center; padding: 0 10vw;
+      overflow: hidden;
+    }
+    .hero-body { max-width: 62%; padding-top: 72px; }
+    .hero-l1 {
+      font-family: var(--serif); font-style: italic; font-weight: 400;
+      font-size: clamp(2rem, 3.8vw, 3.2rem);
+      color: var(--text-2); line-height: 1.25;
+      opacity: 0; transform: translateY(16px);
+      animation: fadeUp .6s ease-out 0ms forwards;
+    }
+    .hero-l2 {
+      font-family: var(--serif); font-style: normal; font-weight: 900;
+      font-size: clamp(2.5rem, 4.8vw, 4rem);
+      color: var(--text-1); line-height: 1.1; margin-top: 6px;
+      opacity: 0; transform: translateY(16px);
+      animation: fadeUp .6s ease-out 120ms forwards;
+    }
+    .hero-sub {
+      font-size: .95rem; color: var(--text-3); margin-top: 24px; max-width: 460px;
+      opacity: 0; transform: translateY(16px);
+      animation: fadeUp .6s ease-out 240ms forwards;
+    }
+    .hero-ctas {
+      display: flex; align-items: center; gap: 24px; margin-top: 32px;
+      opacity: 0; transform: translateY(16px);
+      animation: fadeUp .6s ease-out 360ms forwards;
+    }
+    .btn-primary {
+      font-family: var(--sans); font-size: .9rem; font-weight: 500;
+      background: var(--accent); color: #fff;
+      padding: 13px 28px; border-radius: 4px;
+      transition: background .2s;
+    }
+    .btn-primary:hover { background: #2277ff; }
+    .btn-ghost {
+      font-size: .9rem; color: var(--text-3);
+      border-bottom: 1px solid transparent;
+      padding-bottom: 1px;
+      transition: color .2s, border-color .2s;
+    }
+    .btn-ghost:hover { color: var(--text-1); border-bottom-color: var(--text-1); }
+
+    .hero-quote {
+      position: absolute; bottom: 72px; right: 10vw;
+      max-width: 360px;
+      opacity: 0; transform: translateY(16px);
+      animation: fadeUp .6s ease-out 480ms forwards;
+    }
+    .hero-quote p {
+      font-family: var(--serif); font-style: italic;
+      font-size: .8rem; color: var(--text-4); line-height: 1.65;
+    }
+    .hero-quote cite {
+      display: block; margin-top: 8px;
+      font-family: var(--mono); font-size: .6rem;
+      color: var(--text-4); letter-spacing: .06em;
+      font-style: normal;
+    }
+
+    .scroll-ind {
+      position: absolute; bottom: 40px; left: 10vw;
+      opacity: 0; animation: fadeUp .6s ease-out 600ms forwards;
+    }
+    .scroll-line {
+      width: 1px; height: 44px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:.25; transform: scaleY(1); transform-origin: top; }
+      50%      { opacity: 1; transform: scaleY(.55); transform-origin: top; }
+    }
+
+    /* ─── SECTION LABEL ──────────────────────────────────── */
+    .slabel {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 36px;
+    }
+    .slabel-text {
+      font-family: var(--mono); font-size: .68rem; font-weight: 500;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: var(--text-3);
+      padding-left: 12px;
+      border-left: 2px solid var(--accent);
+    }
+    .slabel-link {
+      font-family: var(--mono); font-size: .68rem; color: var(--accent);
+      transition: opacity .2s;
+    }
+    .slabel-link:hover { opacity: .65; }
+
+    /* ─── CINEMATIC SCROLL ───────────────────────────────── */
+    .cin-wrap  { position: relative; height: 400vh; }
+    .cin-stick {
+      position: sticky; top: 0; height: 100vh; overflow: hidden;
+    }
+    .cin-head {
+      position: absolute; top: 88px; left: 0; right: 0;
+      padding: 0 10vw; z-index: 10;
+    }
+    .cin-stage {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .c-card {
+      position: absolute;
+      width: min(720px, 82vw);
+      padding: 52px 60px;
+      background: var(--navy-800);
+      border: 1px solid var(--accent-border);
+      opacity: 0; transform: translateY(14px);
+      transition: opacity .6s ease, transform .6s ease;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .c-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent, transparent 39px,
+        rgba(26,111,255,.022) 39px,
+        rgba(26,111,255,.022) 40px
+      );
+      pointer-events: none;
+    }
+    .c-card.active   { opacity: 1;  transform: translateY(0);    pointer-events: auto; }
+    .c-card.leaving  { opacity: 0;  transform: translateY(-14px); pointer-events: none; }
+
+    .c-card:nth-child(1) { background: #0f1520; }
+    .c-card:nth-child(2) { background: #0d1628; }
+    .c-card:nth-child(3) { background: #101824; }
+    .c-card:nth-child(4) { background: #0c1422; }
+
+    .c-catchphrase {
+      font-family: var(--serif); font-style: italic; font-weight: 400;
+      font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+      line-height: 1.35; color: var(--text-1);
+      margin-bottom: 18px;
+    }
+    .c-rule { width: 40px; height: 1px; background: var(--accent); margin-bottom: 20px; }
+    .c-title {
+      font-family: var(--serif); font-weight: 700;
+      font-size: clamp(.95rem, 1.5vw, 1.2rem);
+      line-height: 1.4; color: var(--text-1); margin-bottom: 6px;
+    }
+    .c-org {
+      font-family: var(--mono); font-size: .62rem;
+      text-transform: uppercase; letter-spacing: .08em;
+      color: var(--text-3); margin-bottom: 16px;
+    }
+    .c-desc {
+      font-family: var(--sans); font-size: .88rem;
+      color: var(--text-2); line-height: 1.7; margin-bottom: 28px;
+    }
+    .c-foot {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .c-badge {
+      font-family: var(--mono); font-size: .58rem;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: var(--accent); border: 1px solid var(--accent-border);
+      padding: 4px 10px;
+    }
+    .c-link {
+      font-family: var(--mono); font-size: .72rem; color: var(--accent);
+      transition: opacity .2s;
+    }
+    .c-link:hover { opacity: .65; }
+
+    .cin-dots {
+      position: absolute; bottom: 32px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 8px; z-index: 10;
+    }
+    .cin-dot {
+      width: 4px; height: 4px; border-radius: 50%;
+      background: var(--text-4);
+      transition: background .3s, transform .3s;
+    }
+    .cin-dot.on { background: var(--accent); transform: scale(1.6); }
+
+    /* ─── AI SEARCH ──────────────────────────────────────── */
+    .search-section {
+      padding: 96px 10vw; text-align: center;
+    }
+    .search-label {
+      font-family: var(--serif); font-style: italic;
+      font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+      color: var(--text-1); margin-bottom: 28px;
+    }
+    .search-wrap {
+      position: relative; max-width: 640px; margin: 0 auto;
+    }
+    .search-input {
+      width: 100%; height: 56px;
+      background: var(--navy-800); border: 1px solid var(--accent-border);
+      color: var(--text-1); font-family: var(--sans); font-size: .92rem;
+      padding: 0 148px 0 20px;
+      outline: none; border-radius: 0;
+      transition: box-shadow .2s, border-color .2s;
+    }
+    .search-input::placeholder { color: var(--text-3); }
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(26,111,255,.1), 0 0 20px rgba(26,111,255,.07);
+    }
+    .search-btn {
+      position: absolute; right: 0; top: 0; height: 100%;
+      padding: 0 20px; background: var(--accent); border: none;
+      color: #fff; font-family: var(--mono); font-size: .7rem;
+      letter-spacing: .05em; cursor: none;
+      transition: background .2s; white-space: nowrap;
+    }
+    .search-btn:hover { background: #2277ff; }
+
+    /* ─── CONTENT SECTIONS ───────────────────────────────── */
+    .csection { padding: 72px 10vw; }
+    .csection + .csection { padding-top: 0; }
+
+    .sec-h {
+      font-family: var(--serif); font-style: italic;
+      font-size: clamp(1.6rem, 3vw, 2.5rem);
+      color: var(--text-1); margin-bottom: 12px;
+    }
+    .sec-sub {
+      font-size: .92rem; color: var(--text-3);
+      max-width: 580px; line-height: 1.7; margin-bottom: 36px;
+    }
+
+    /* ─── PILLS ──────────────────────────────────────────── */
+    .pill-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .pill {
+      display: block; text-align: center;
+      font-family: var(--sans); font-size: .83rem;
+      color: var(--text-2); background: var(--navy-800);
+      border: 1px solid var(--accent-border);
+      padding: 10px 14px;
+      transition: border-color .2s, background .2s, color .2s;
+    }
+    .pill:hover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      color: var(--text-1);
+    }
+
+    .type-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .type-scroll::-webkit-scrollbar { display: none; }
+    .type-scroll { scrollbar-width: none; }
+
+    /* ─── FOOTER ─────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--accent);
+      padding: 56px 10vw 36px;
+    }
+    .foot-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 48px; margin-bottom: 36px;
+    }
+    .foot-name {
+      font-family: var(--serif); font-size: 1.25rem; font-weight: 700;
+      color: var(--text-1); margin-bottom: 10px;
+    }
+    .foot-tag {
+      font-family: var(--serif); font-style: italic;
+      font-size: .85rem; color: var(--text-3); line-height: 1.55;
+    }
+    .foot-nav { display: flex; flex-direction: column; gap: 12px; }
+    .foot-nav a {
+      font-family: var(--mono); font-size: .68rem;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: var(--text-3); transition: color .2s;
+    }
+    .foot-nav a:hover { color: var(--text-1); }
+    .foot-service { display: flex; flex-direction: column; gap: 7px; }
+    .foot-city  { font-family: var(--mono); font-size: .68rem; color: var(--text-2); }
+    .foot-soon  { font-family: var(--mono); font-size: .68rem; color: var(--text-3); }
+    .foot-bring {
+      font-family: var(--mono); font-size: .63rem; color: var(--accent);
+      margin-top: 8px; transition: opacity .2s; display: block;
+    }
+    .foot-bring:hover { opacity: .65; }
+    .foot-copy {
+      font-family: var(--mono); font-size: .62rem; color: var(--text-4);
+      border-top: 1px solid rgba(255,255,255,.05); padding-top: 20px;
+    }
+
+    /* ─── ANIMATIONS ─────────────────────────────────────── */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────── */
+    @media (max-width: 1100px) {
+      .pill-grid { grid-template-columns: repeat(3, 1fr); }
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      .nav-center { display: none; }
+      nav { padding: 0 5vw; }
+      .hero { padding: 0 6vw; }
+      .hero-body { max-width: 100%; }
+      .hero-ctas { flex-direction: column; align-items: flex-start; gap: 14px; }
+      .hero-quote { display: none; }
+      .cin-head { padding: 0 6vw; }
+      .c-card { padding: 36px 28px; width: min(720px, 92vw); }
+      .pill-grid { grid-template-columns: repeat(2, 1fr); }
+      .foot-grid { grid-template-columns: 1fr; gap: 28px; }
+      .csection { padding: 56px 6vw; }
+      .search-section { padding: 72px 6vw; }
+      footer { padding: 44px 6vw 28px; }
+      .type-scroll .pill-grid {
+        display: flex; flex-wrap: nowrap; gap: 8px; min-width: max-content;
+        -webkit-mask-image: linear-gradient(to right, black 88%, transparent);
+        mask-image: linear-gradient(to right, black 88%, transparent);
+      }
+      .type-scroll .pill { flex-shrink: 0; }
+    }
+    @media (max-width: 480px) {
+      .hero-l1 { font-size: 1.75rem; }
+      .hero-l2 { font-size: 2.1rem; }
+      .pill-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="cur-dot"></div>
+  <div id="cur-ring"></div>
+  <canvas id="stars"></canvas>
+
+  <div class="page">
+
+    <!-- NAV -->
+    <nav id="nav">
+      <a href="/" class="nav-brand">
+        <span class="nav-brand-name">Opportography</span>
+        <span class="nav-brand-stat">499+ verified opportunities</span>
+      </a>
+      <ul class="nav-center">
+        <li><a href="/">Home</a></li>
+        <li><a href="/opportunities">Browse</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/support">Support</a></li>
+      </ul>
+      <div class="nav-auth">
+        <a href="/login" class="nav-signin">Sign In</a>
+        <a href="/signup" class="nav-signup">Sign Up Free</a>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-body">
+        <h1 class="hero-l1">Every city is full of opportunity.</h1>
+        <h1 class="hero-l2">Most people never find it.</h1>
+        <p class="hero-sub">499+ verified opportunities mapped across the Omaha&ndash;Council Bluffs metro.</p>
+        <div class="hero-ctas">
+          <a href="/opportunities" class="btn-primary">Browse Opportunities</a>
+          <a href="/about" class="btn-ghost">Learn Our Story</a>
+        </div>
+      </div>
+
+      <aside class="hero-quote">
+        <p>&ldquo;Outliers are those who have been given opportunities &mdash; and who had the strength and presence of mind to seize them.&rdquo;</p>
+        <cite>&mdash; Malcolm Gladwell, <em>Outliers</em></cite>
+      </aside>
+
+      <div class="scroll-ind"><div class="scroll-line"></div></div>
+    </section>
+
+    <!-- CINEMATIC SCROLL -->
+    <section class="cin-wrap" id="cinWrap">
+      <div class="cin-stick">
+
+        <div class="cin-head">
+          <div class="slabel">
+            <span class="slabel-text">Featured Opportunities</span>
+            <a href="/opportunities" class="slabel-link">View all &rarr;</a>
+          </div>
+        </div>
+
+        <div class="cin-stage" id="cinStage">
+
+          <!-- Card 1 — Trades -->
+          <article class="c-card active" data-idx="0">
+            <p class="c-catchphrase">Don&rsquo;t want a four-year degree. Don&rsquo;t want to be stuck either.</p>
+            <div class="c-rule"></div>
+            <h2 class="c-title">Ironworkers Local 21 &mdash; Structural &amp; Reinforcing Steel Apprenticeship (Nebraska + Iowa)</h2>
+            <p class="c-org">Iron Workers International Local 21</p>
+            <p class="c-desc">Ironworkers Local 21 apprentices earn $23.50/hr starting pay (65% of journeyman scale) from the first day on the job.</p>
+            <div class="c-foot">
+              <span class="c-badge">Union Apprenticeship</span>
+              <a href="/opportunities/b0f275ff-6f6d-42d8-86fe-385849a85ab4" class="c-link">View Opportunity &rarr;</a>
+            </div>
+          </article>
+
+          <!-- Card 2 — Entrepreneurship -->
+          <article class="c-card" data-idx="1">
+            <p class="c-catchphrase">Everyone said entrepreneurship was for people with connections. You don&rsquo;t have those yet.</p>
+            <div class="c-rule"></div>
+            <h2 class="c-title">1 Million Cups Omaha</h2>
+            <p class="c-org">1MC Omaha</p>
+            <p class="c-desc">This is one of the best low-barrier entry points into the Omaha entrepreneurship community for anyone with a business idea or who wants to meet founders.</p>
+            <div class="c-foot">
+              <span class="c-badge">Networking</span>
+              <a href="/opportunities/284ff007-89fd-4b63-b3d7-87f25e252ecf" class="c-link">View Opportunity &rarr;</a>
+            </div>
+          </article>
+
+          <!-- Card 3 — First-gen -->
+          <article class="c-card" data-idx="2">
+            <p class="c-catchphrase">First in your family to figure this out. No roadmap.</p>
+            <div class="c-rule"></div>
+            <h2 class="c-title">Creighton University TRIO Classic Upward Bound &mdash; Free College Prep for Omaha HS Students</h2>
+            <p class="c-org">Creighton University TRIO Upward Bound Programs</p>
+            <p class="c-desc">This program has changed thousands of lives in Omaha.</p>
+            <div class="c-foot">
+              <span class="c-badge">College Access</span>
+              <a href="/opportunities/6125526b-eb66-4ec2-ab88-d05a1a684e88" class="c-link">View Opportunity &rarr;</a>
+            </div>
+          </article>
+
+          <!-- Card 4 — Need-based scholarship -->
+          <article class="c-card" data-idx="3">
+            <p class="c-catchphrase">Scholarship applications feel like they were written for someone else.</p>
+            <div class="c-rule"></div>
+            <h2 class="c-title">UNO Goodrich Scholarship Program</h2>
+            <p class="c-org">University of Nebraska at Omaha / Goodrich Program</p>
+            <p class="c-desc">The program targets students facing significant obstacles or demonstrating potential despite financial constraints.</p>
+            <div class="c-foot">
+              <span class="c-badge">Institutional Scholarship</span>
+              <a href="/opportunities/a4ad7cea-d1cc-4e20-bec6-fc9362b7f6fa" class="c-link">View Opportunity &rarr;</a>
+            </div>
+          </article>
+
+        </div>
+
+        <div class="cin-dots" id="cinDots">
+          <div class="cin-dot on"></div>
+          <div class="cin-dot"></div>
+          <div class="cin-dot"></div>
+          <div class="cin-dot"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- AI SEARCH -->
+    <section class="search-section">
+      <p class="search-label">Find Your Opportunity</p>
+      <div class="search-wrap">
+        <input
+          type="text"
+          id="searchInput"
+          class="search-input"
+          placeholder="Describe what you&rsquo;re looking for&hellip;"
+          aria-label="Search opportunities"
+        >
+        <button class="search-btn" id="searchBtn">Find Opportunities &rarr;</button>
+      </div>
+    </section>
+
+    <!-- IDENTITY CATEGORIES -->
+    <section class="csection">
+      <h2 class="sec-h">You belong here.</h2>
+      <p class="sec-sub">Whether you&rsquo;re first-gen, low-income, an immigrant, or just looking for your next step &mdash; these opportunities are for you.</p>
+      <div class="pill-grid">
+        <a href="/for/low-income"     class="pill">Low-Income Students</a>
+        <a href="/for/first-gen"      class="pill">First-Generation Students</a>
+        <a href="/for/hispanic"       class="pill">Hispanic / Latino Students</a>
+        <a href="/for/black"          class="pill">Black / African American Students</a>
+        <a href="/for/native-american" class="pill">Native American / Indigenous Students</a>
+        <a href="/for/asian-pacific"  class="pill">Asian American / Pacific Islander Students</a>
+        <a href="/for/immigrant"      class="pill">Immigrant / Refugee Students</a>
+        <a href="/for/disabled"       class="pill">Students with Disabilities</a>
+        <a href="/for/lgbtq"          class="pill">LGBTQ+ Students</a>
+        <a href="/for/women-stem"     class="pill">Women in STEM</a>
+        <a href="/for/foster-youth"   class="pill">Foster Youth</a>
+        <a href="/for/homeless"       class="pill">Housing-Insecure Students</a>
+        <a href="/for/rural"          class="pill">Rural Students</a>
+        <a href="/for/esl"            class="pill">ESL / Multilingual Students</a>
+      </div>
+    </section>
+
+    <!-- BROWSE BY TYPE -->
+    <section class="csection">
+      <div class="slabel">
+        <span class="slabel-text">Browse by Type</span>
+      </div>
+      <div class="type-scroll">
+        <div class="pill-grid">
+          <a href="/opportunities?type=scholarship"             class="pill">Scholarship</a>
+          <a href="/opportunities?type=institutional_scholarship" class="pill">Institutional Scholarship</a>
+          <a href="/opportunities?type=internship"              class="pill">Internship</a>
+          <a href="/opportunities?type=summer_program"          class="pill">Summer Program</a>
+          <a href="/opportunities?type=mentorship"              class="pill">Mentorship</a>
+          <a href="/opportunities?type=competition"             class="pill">Competition</a>
+          <a href="/opportunities?type=free_resource"           class="pill">Free Resource</a>
+          <a href="/opportunities?type=workshop"                class="pill">Workshop</a>
+          <a href="/opportunities?type=college_access"          class="pill">College Access Program</a>
+          <a href="/opportunities?type=job"                     class="pill">Jobs</a>
+          <a href="/opportunities?type=networking"              class="pill">Networking &amp; Community</a>
+          <a href="/opportunities?type=community"               class="pill">Community Events &amp; Clubs</a>
+          <a href="/opportunities?type=scientific_exploration"  class="pill">Scientific Exploration</a>
+          <a href="/opportunities?type=tutoring"                class="pill">Tutoring &amp; Academic Support</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="foot-grid">
+        <div>
+          <div class="foot-name">Opportography</div>
+          <p class="foot-tag">No student should miss out because they didn&rsquo;t know.</p>
+        </div>
+        <nav class="foot-nav">
+          <a href="/opportunities">Browse</a>
+          <a href="/about">About</a>
+          <a href="/support">Support</a>
+        </nav>
+        <div class="foot-service">
+          <span class="foot-city">Currently serving: Omaha&ndash;Council Bluffs Metro</span>
+          <span class="foot-soon">Akron Metro (Coming Soon)</span>
+          <a href="/support" class="foot-bring">Bring Opportography to your city &rarr;</a>
+        </div>
+      </div>
+      <p class="foot-copy">&copy; 2026 Opportography. All rights reserved.</p>
+    </footer>
+
+  </div><!-- .page -->
+
+  <script>
+  // ── CURSOR ────────────────────────────────────────────────
+  (function(){
+    const dot  = document.getElementById('cur-dot');
+    const ring = document.getElementById('cur-ring');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      dot.style.left = mx + 'px';
+      dot.style.top  = my + 'px';
+    });
+
+    (function tick(){
+      rx += (mx - rx) * 0.15;
+      ry += (my - ry) * 0.15;
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(tick);
+    })();
+
+    document.querySelectorAll('a,button,input,.pill').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('hov'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('hov'));
+    });
+  })();
+
+  // ── CONSTELLATION ─────────────────────────────────────────
+  (function(){
+    const canvas = document.getElementById('stars');
+    const ctx    = canvas.getContext('2d');
+    const mobile = window.innerWidth < 768;
+    const N      = mobile ? 80 : 140;
+    const CDIST  = 120;
+    const MDIST  = 140;
+    let stars = [], mouse = {x:-9999,y:-9999}, last = 0;
+
+    function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+
+    function seed(){
+      stars = [];
+      for(let i=0;i<N;i++) stars.push({
+        x: Math.random()*canvas.width,
+        y: Math.random()*canvas.height,
+        r: .5 + Math.random()*1.5,
+        o: .3 + Math.random()*.7,
+        vx: (Math.random()-.5)*.12,
+        vy: (Math.random()-.5)*.12,
+      });
+    }
+
+    if(!mobile){
+      document.addEventListener('mousemove', e => { mouse.x=e.clientX; mouse.y=e.clientY; });
+    }
+
+    function draw(now){
+      if(now - last < 16){ requestAnimationFrame(draw); return; }
+      last = now;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      for(const s of stars){
+        s.x += s.vx; s.y += s.vy;
+        if(s.x < -10) s.x = canvas.width+10;
+        if(s.x > canvas.width+10) s.x = -10;
+        if(s.y < -10) s.y = canvas.height+10;
+        if(s.y > canvas.height+10) s.y = -10;
+      }
+
+      for(let i=0;i<stars.length;i++){
+        for(let j=i+1;j<stars.length;j++){
+          const dx=stars[i].x-stars[j].x, dy=stars[i].y-stars[j].y;
+          const d=Math.sqrt(dx*dx+dy*dy);
+          if(d<CDIST){
+            ctx.beginPath();
+            ctx.moveTo(stars[i].x,stars[i].y);
+            ctx.lineTo(stars[j].x,stars[j].y);
+            ctx.strokeStyle=`rgba(255,255,255,${(1-d/CDIST)*.15})`;
+            ctx.lineWidth=.5;
+            ctx.stroke();
+          }
+        }
+      }
+
+      for(const s of stars){
+        const dx=s.x-mouse.x, dy=s.y-mouse.y;
+        const md=Math.sqrt(dx*dx+dy*dy);
+        const near=!mobile && md<MDIST;
+        const br=near ? Math.min(1,s.o+.4) : s.o;
+        ctx.beginPath();
+        ctx.arc(s.x,s.y,near?s.r*1.4:s.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(255,255,255,${br})`;
+        ctx.fill();
+      }
+      requestAnimationFrame(draw);
+    }
+
+    resize(); seed(); requestAnimationFrame(draw);
+    window.addEventListener('resize', ()=>{ resize(); seed(); });
+  })();
+
+  // ── NAV SCROLL STATE ──────────────────────────────────────
+  (function(){
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', ()=>{
+      nav.classList.toggle('scrolled', scrollY > 60);
+    }, {passive:true});
+  })();
+
+  // ── CINEMATIC SCROLL ──────────────────────────────────────
+  (function(){
+    const wrap  = document.getElementById('cinWrap');
+    const cards = document.querySelectorAll('.c-card');
+    const dots  = document.querySelectorAll('.cin-dot');
+    let cur = 0;
+
+    function show(idx){
+      if(idx === cur) return;
+      cards[cur].classList.add('leaving');
+      const prev = cur;
+      setTimeout(()=>{ cards[prev].classList.remove('active','leaving'); }, 320);
+      cur = idx;
+      cards[cur].classList.add('active');
+      dots.forEach((d,i)=>d.classList.toggle('on', i===idx));
+    }
+
+    window.addEventListener('scroll', ()=>{
+      const budget = wrap.offsetHeight - innerHeight;
+      const into   = scrollY - wrap.offsetTop;
+      const p      = Math.max(0, Math.min(1, into / budget));
+      show(Math.min(3, Math.floor(p * 4)));
+    }, {passive:true});
+  })();
+
+  // ── SEARCH ────────────────────────────────────────────────
+  (function(){
+    function go(){
+      const q = document.getElementById('searchInput').value.trim();
+      if(q) location.href = '/opportunities?q=' + encodeURIComponent(q);
+    }
+    document.getElementById('searchBtn').addEventListener('click', go);
+    document.getElementById('searchInput').addEventListener('keydown', e=>{
+      if(e.key==='Enter') go();
+    });
+  })();
+  </script>
+
+</body>
+</html>
