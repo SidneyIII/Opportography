@@ -48,7 +48,7 @@ const GROUPS = [
 
 export function IdentityGroups() {
   return (
-    <section className="border-y border-navy-600 bg-navy-900/50 px-6 py-14 md:px-16 lg:px-24">
+    <section className="border border-navy-600 bg-navy-900/50 mx-4 my-2 rounded-xl px-6 py-14 md:mx-16 lg:mx-24">
       <div className="mx-auto max-w-6xl">
         <h2 className="font-display mb-2 text-2xl font-bold text-slate-50">
           Find Opportunities For You
