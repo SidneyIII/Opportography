@@ -56,12 +56,12 @@ const GROUPS = [
 
 export function IdentityGroups() {
   return (
-    <section className="border border-navy-600 bg-navy-900/50 mx-4 my-2 rounded-xl px-6 py-14 md:mx-16 lg:mx-24">
+    <section className="mx-4 px-6 py-14 md:mx-16 lg:mx-24">
       <div className="mx-auto max-w-6xl">
-        <h2 className="font-display mb-2 text-2xl font-bold text-slate-50">
+        <h2 className="font-display mb-2 text-center text-2xl font-bold text-slate-50">
           Find Opportunities For You
         </h2>
-        <p className="mb-10 text-sm text-slate-500">
+        <p className="mb-10 text-center text-sm text-slate-500">
           We surface opportunities specifically for your background and identity.
         </p>
 
