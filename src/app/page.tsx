@@ -36,12 +36,6 @@ export default async function HomePage() {
             internship, program, and resource in your city — all in one place.
           </p>
 
-          <blockquote className="mx-auto mt-3 max-w-xl text-sm italic text-slate-500">
-            &ldquo;Outliers are those who have been given opportunities — and who have had
-            the strength and presence of mind to seize them.&rdquo;
-            <span className="mt-1 block not-italic text-slate-600">— Malcolm Gladwell, <em>Outliers</em></span>
-          </blockquote>
-
           <div className="mt-5 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
               href="/opportunities"
