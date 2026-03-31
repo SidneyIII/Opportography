@@ -146,7 +146,7 @@ export function CinematicCarousel() {
     <div ref={wrapperRef} style={{ height: totalHeight }}>
       <div
         className="sticky top-0 overflow-hidden"
-        style={{ height: '100vh', background: 'inherit' }}
+        style={{ height: '100vh', backgroundColor: '#0A0E1A' }}
       >
         {/* Card stage — cards are absolutely centered and shifted by JS */}
         <div className="absolute inset-0 flex items-center justify-center">
