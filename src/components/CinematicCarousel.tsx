@@ -143,7 +143,7 @@ export function CinematicCarousel() {
   const totalHeight = `${CARDS.length * VH_PER_CARD}vh`
 
   return (
-    <div ref={wrapperRef} style={{ height: totalHeight }}>
+    <div ref={wrapperRef} style={{ height: totalHeight, overflowX: 'clip' }}>
       <div
         className="sticky top-0 overflow-hidden"
         style={{ height: '100vh' }}
