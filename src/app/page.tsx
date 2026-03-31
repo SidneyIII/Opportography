@@ -65,8 +65,8 @@ export default async function HomePage() {
       <IdentityGroups />
 
       {/* Browse by Type */}
-      <section className="mx-auto max-w-6xl px-4 py-12">
-        <h2 className="font-display mb-6 text-2xl font-bold text-slate-50">Browse by Type</h2>
+      <section className="mx-4 my-2 rounded-xl border border-navy-600 bg-navy-900/50 px-6 py-12 md:mx-16 lg:mx-24">
+        <h2 className="font-display mb-6 text-center text-2xl font-bold text-slate-50">Browse by Type</h2>
         <div className="flex flex-wrap gap-3">
           {allTypes.map((type) => (
             <Link
