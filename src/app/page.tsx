@@ -16,7 +16,7 @@ export default async function HomePage() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative px-4 pt-24 pb-2 md:pt-40 md:pb-2">
+      <section className="relative px-4 pt-24 pb-0 md:pt-40 md:pb-0">
         <div className="mx-auto max-w-4xl text-center">
           {/* Metro selector pill — city-aware, Coming Soon for inactive metros */}
           <div className="mb-6 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
