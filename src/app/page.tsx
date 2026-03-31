@@ -58,13 +58,13 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Featured Opportunities — Cinematic Scroll Carousel */}
+      <CinematicCarousel />
+
       {/* AI Demo Match Box */}
       <section className="mx-auto max-w-6xl px-4 py-16">
         <DemoMatchBox totalOpportunities={all.length} />
       </section>
-
-      {/* Featured Opportunities — Cinematic Scroll Carousel */}
-      <CinematicCarousel />
 
       {/* Browse by Identity */}
       <section className="border-y border-navy-600 bg-navy-900/50 px-4 py-12">

@@ -148,19 +148,6 @@ export function CinematicCarousel() {
         className="sticky top-0 overflow-hidden"
         style={{ height: '100vh', background: 'inherit' }}
       >
-        {/* Section header */}
-        <div className="absolute top-6 left-0 right-0 z-20 flex items-center justify-between px-6">
-          <span className="border-l-2 border-cyan-400 pl-3 text-[11px] font-medium uppercase tracking-widest text-slate-500">
-            Featured Opportunities
-          </span>
-          <Link
-            href="/opportunities"
-            className="text-xs text-cyan-400 transition-colors hover:text-cyan-300"
-          >
-            View all &rarr;
-          </Link>
-        </div>
-
         {/* Card stage — cards are absolutely centered and shifted by JS */}
         <div className="absolute inset-0 flex items-center justify-center">
           {CARDS.map((card, i) => (
