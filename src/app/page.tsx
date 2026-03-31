@@ -7,6 +7,7 @@ import { DemoMatchBox } from '@/components/DemoMatchBox'
 import { MetroSelector } from '@/components/MetroSelector'
 import { CinematicCarousel } from '@/components/CinematicCarousel'
 import { IdentityGroups } from '@/components/IdentityGroups'
+import { TheProblem } from '@/components/TheProblem'
 
 export default async function HomePage() {
   const [all, metros] = await Promise.all([
@@ -55,6 +56,9 @@ export default async function HomePage() {
 
       {/* Featured Opportunities — Cinematic Scroll Carousel */}
       <CinematicCarousel />
+
+      {/* The Problem */}
+      <TheProblem />
 
       {/* AI Demo Match Box */}
       <section className="mx-auto max-w-6xl px-4 py-16">
