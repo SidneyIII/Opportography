@@ -27,11 +27,11 @@ export default async function HomePage() {
             </span>
           </div>
 
-          <h1 className="font-display mt-1 text-6xl font-bold leading-[1.1] tracking-tight text-slate-50 md:text-8xl">
+          <h1 className="font-display mt-1 text-4xl font-bold leading-[1.1] tracking-tight text-slate-50 sm:text-5xl md:text-6xl lg:text-8xl">
             Opport<span className="text-cyan-400">ography</span>
           </h1>
 
-          <p className="mx-auto mt-4 max-w-2xl text-xl leading-relaxed text-slate-400 md:text-2xl">
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-400 sm:text-lg md:text-xl lg:text-2xl">
             Opportunity + Cartography. Like a map for your future — every scholarship,
             internship, program, and resource in your city — all in one place.
           </p>
