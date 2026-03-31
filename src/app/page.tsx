@@ -81,7 +81,7 @@ export default async function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="border-t border-navy-600 px-4 py-16">
+      <section className="px-4 py-16">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold text-slate-50">You belong here.</h2>
           <p className="mt-3 text-slate-400">
