@@ -1,15 +1,14 @@
 export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
-import { getFeaturedOpportunities, getAllOpportunities, getMetroAreas } from '@/lib/queries'
+import { getAllOpportunities, getMetroAreas } from '@/lib/queries'
 import { allIdentityTags, getIdentityLabel, getIdentitySlug, getTypeLabel, allTypes } from '@/lib/utils'
-import { OpportunityCard } from '@/components/OpportunityCard'
 import { DemoMatchBox } from '@/components/DemoMatchBox'
 import { MetroSelector } from '@/components/MetroSelector'
+import { CinematicCarousel } from '@/components/CinematicCarousel'
 
 export default async function HomePage() {
-  const [featured, all, metros] = await Promise.all([
-    getFeaturedOpportunities(),
+  const [all, metros] = await Promise.all([
     getAllOpportunities(),
     getMetroAreas(),
   ])
@@ -64,23 +63,8 @@ export default async function HomePage() {
         <DemoMatchBox totalOpportunities={all.length} />
       </section>
 
-      {/* Featured Opportunities */}
-      <section className="mx-auto max-w-6xl px-4 py-12">
-        <div className="mb-6 flex items-end justify-between">
-          <h2 className="font-display text-2xl font-bold text-slate-50">Featured Opportunities</h2>
-          <Link
-            href="/opportunities"
-            className="text-sm font-medium text-slate-500 transition-colors hover:text-cyan-400"
-          >
-            View all &rarr;
-          </Link>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {featured.map((opp) => (
-            <OpportunityCard key={opp.id} opportunity={opp} />
-          ))}
-        </div>
-      </section>
+      {/* Featured Opportunities — Cinematic Scroll Carousel */}
+      <CinematicCarousel />
 
       {/* Browse by Identity */}
       <section className="border-y border-navy-600 bg-navy-900/50 px-4 py-12">
