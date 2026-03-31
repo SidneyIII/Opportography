@@ -149,7 +149,7 @@ export function CinematicCarousel() {
         style={{ height: '100vh' }}
       >
         {/* Card stage — cards are absolutely centered and shifted by JS */}
-        <div className="absolute inset-0 flex items-start justify-center pt-24">
+        <div className="absolute inset-0 flex items-start justify-center pt-32">
           {CARDS.map((card, i) => (
             <div
               key={i}
