@@ -2,10 +2,11 @@ export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
 import { getAllOpportunities, getMetroAreas } from '@/lib/queries'
-import { allIdentityTags, getIdentityLabel, getIdentitySlug, getTypeLabel, allTypes } from '@/lib/utils'
+import { getTypeLabel, allTypes } from '@/lib/utils'
 import { DemoMatchBox } from '@/components/DemoMatchBox'
 import { MetroSelector } from '@/components/MetroSelector'
 import { CinematicCarousel } from '@/components/CinematicCarousel'
+import { IdentityGroups } from '@/components/IdentityGroups'
 
 export default async function HomePage() {
   const [all, metros] = await Promise.all([
@@ -66,26 +67,8 @@ export default async function HomePage() {
         <DemoMatchBox totalOpportunities={all.length} />
       </section>
 
-      {/* Browse by Identity */}
-      <section className="border-y border-navy-600 bg-navy-900/50 px-4 py-12">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="font-display mb-2 text-2xl font-bold text-slate-50">Find Opportunities For You</h2>
-          <p className="mb-6 text-sm text-slate-500">
-            We surface opportunities specifically for your background and identity.
-          </p>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-            {allIdentityTags.map((tag) => (
-              <Link
-                key={tag}
-                href={`/for/${getIdentitySlug(tag)}`}
-                className="rounded-lg border border-navy-600 bg-navy-800 px-4 py-3 text-center text-sm font-medium text-slate-300 transition-all hover:border-cyan-400/50 hover:bg-navy-700 hover:text-cyan-400"
-              >
-                {getIdentityLabel(tag)}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Browse by Identity — grouped category boxes */}
+      <IdentityGroups />
 
       {/* Browse by Type */}
       <section className="mx-auto max-w-6xl px-4 py-12">
