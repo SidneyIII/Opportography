@@ -4,7 +4,9 @@ const GROUPS = [
   {
     title: 'Ethnic Identity',
     description: 'Opportunities tailored to your cultural background and heritage.',
-    accent: 'border-cyan-400',
+    topBorder: 'border-t-2 border-t-cyan-400',
+    bg: 'rgba(34, 211, 238, 0.07)',
+    border: 'rgba(34, 211, 238, 0.18)',
     links: [
       { label: 'Hispanic / Latino Students',                    href: '/for/hispanic' },
       { label: 'Black / African American Students',             href: '/for/black' },
@@ -16,7 +18,9 @@ const GROUPS = [
   {
     title: 'Life Circumstances',
     description: 'Opportunities for students navigating financial, systemic, or personal challenges.',
-    accent: 'border-blue-400',
+    topBorder: 'border-t-2 border-t-white',
+    bg: 'rgba(255, 255, 255, 0.05)',
+    border: 'rgba(255, 255, 255, 0.10)',
     links: [
       { label: 'Low-Income Students',          href: '/for/low-income' },
       { label: 'First-Generation Students',    href: '/for/first-gen' },
@@ -29,16 +33,20 @@ const GROUPS = [
   {
     title: 'LGBTQ+ & Gender',
     description: 'Opportunities supporting LGBTQ+ students and women in STEM fields.',
-    accent: 'border-violet-400',
+    topBorder: 'border-t-2 border-t-blue-400',
+    bg: 'rgba(96, 165, 250, 0.07)',
+    border: 'rgba(96, 165, 250, 0.18)',
     links: [
       { label: 'LGBTQ+ Students', href: '/for/lgbtq' },
       { label: 'Women in STEM',   href: '/for/women-stem' },
     ],
   },
   {
-    title: 'Where You\'re From',
+    title: "Where You're From",
     description: 'Opportunities shaped by where you grew up and where you live now.',
-    accent: 'border-emerald-400',
+    topBorder: 'border-t-2 border-t-indigo-400',
+    bg: 'rgba(129, 140, 248, 0.07)',
+    border: 'rgba(129, 140, 248, 0.18)',
     links: [
       { label: 'Rural Students', href: '/for/rural' },
     ],
@@ -61,7 +69,8 @@ export function IdentityGroups() {
           {GROUPS.map((group) => (
             <div
               key={group.title}
-              className={`rounded-lg border-t-2 ${group.accent} border-x border-b border-navy-600 bg-navy-800 p-6`}
+              className={`rounded-lg ${group.topBorder} p-6 backdrop-blur-sm`}
+              style={{ background: group.bg, border: `1px solid ${group.border}`, borderTopWidth: '2px' }}
             >
               {/* Header */}
               <h3 className="mb-1 text-xs font-semibold uppercase tracking-widest text-slate-200">
