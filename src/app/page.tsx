@@ -8,6 +8,7 @@ import { MetroSelector } from '@/components/MetroSelector'
 import { CinematicCarousel } from '@/components/CinematicCarousel'
 import { IdentityGroups } from '@/components/IdentityGroups'
 import { TheProblem } from '@/components/TheProblem'
+import { InstitutionalIntegrations } from '@/components/InstitutionalIntegrations'
 
 export default async function HomePage() {
   const [all, metros] = await Promise.all([
@@ -83,6 +84,9 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Institutional Integrations */}
+      <InstitutionalIntegrations />
 
       {/* CTA */}
       <section className="px-4 py-16">
