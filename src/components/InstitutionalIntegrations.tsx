@@ -167,7 +167,7 @@ export function InstitutionalIntegrations() {
         {/* ── Title phase ─────────────────────────────────────── */}
         <div
           ref={titleRef}
-          className="absolute inset-0 flex flex-col items-center justify-center px-6"
+          className="absolute inset-0 flex flex-col items-center justify-start pt-24 px-6 md:pt-28"
           style={{ willChange: 'transform, opacity', zIndex: 10 }}
         >
           <p className="mb-4 text-[11px] uppercase tracking-widest text-cyan-400">
