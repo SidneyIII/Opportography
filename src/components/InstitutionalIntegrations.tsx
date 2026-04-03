@@ -97,7 +97,9 @@ export function InstitutionalIntegrations() {
       if (!wrapper) return
 
       const wrapperTop = wrapper.getBoundingClientRect().top + window.scrollY
-      const budget = wrapper.offsetHeight - window.innerHeight
+      // clientHeight is stable on iOS Safari (excludes dynamic address bar)
+      const vh = document.documentElement.clientHeight
+      const budget = wrapper.offsetHeight - vh
       if (budget <= 0) return
 
       const into = window.scrollY - wrapperTop
@@ -123,7 +125,9 @@ export function InstitutionalIntegrations() {
       }
 
       // ── Cards ─────────────────────────────────────────────────
-      const slideX = Math.min(window.innerWidth * 0.7, 520)
+      // Use full viewport width + buffer so cards are always completely
+      // off-screen before entering, regardless of device width or card size
+      const slideX = window.innerWidth + 80
 
       cardRefs.current.forEach((el, i) => {
         if (!el) return
@@ -180,8 +184,8 @@ export function InstitutionalIntegrations() {
         </div>
 
         {/* ── Cards grid ──────────────────────────────────────── */}
-        <div className="absolute inset-0 flex items-center justify-center px-4 py-16 md:px-16 lg:px-24">
-          <div className="grid w-full max-w-5xl gap-5 sm:grid-cols-2">
+        <div className="absolute inset-0 flex items-center justify-center px-3 py-14 md:px-16 lg:px-24">
+          <div className="grid w-full max-w-5xl grid-cols-2 gap-3 md:gap-5">
             {CARDS.map((card, i) => (
               <div
                 key={card.title}
@@ -192,20 +196,20 @@ export function InstitutionalIntegrations() {
                   opacity: 0,
                   willChange: 'transform, opacity',
                 }}
-                className="rounded-lg p-6 backdrop-blur-sm"
+                className="rounded-lg p-3 backdrop-blur-sm md:p-6"
               >
                 {/* Icon */}
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-md border border-navy-600 bg-navy-800/70">
+                <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md border border-navy-600 bg-navy-800/70 md:mb-4 md:h-10 md:w-10">
                   {card.icon}
                 </div>
 
                 {/* Heading */}
-                <h3 className="font-display mb-3 text-base font-bold leading-snug text-slate-100">
+                <h3 className="font-display mb-1 text-xs font-bold leading-snug text-slate-100 md:mb-3 md:text-base">
                   {card.title}
                 </h3>
 
                 {/* Copy */}
-                <p className="text-sm leading-relaxed text-slate-400">
+                <p className="hidden text-sm leading-relaxed text-slate-400 md:block">
                   {card.copy}
                 </p>
               </div>
