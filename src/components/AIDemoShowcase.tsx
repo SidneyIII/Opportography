@@ -18,6 +18,11 @@ const EXAMPLES = [
     label: 'Save & Prioritize',
     tag: 'Step 3',
   },
+  {
+    id: 'browse',
+    label: 'Browse on Your Own',
+    tag: 'Or',
+  },
 ] as const
 
 type ExampleId = (typeof EXAMPLES)[number]['id']
@@ -331,10 +336,145 @@ function SavePanel() {
   )
 }
 
+const CATEGORY_FILTERS = [
+  { label: 'Scholarships', active: true },
+  { label: 'Internships', active: false },
+  { label: 'Employment', active: false },
+  { label: 'Educational', active: false },
+  { label: 'Community', active: false },
+  { label: 'Civic', active: false },
+  { label: 'Networking', active: false },
+]
+
+const IDENTITY_FILTERS = [
+  { label: 'First-Gen', active: true },
+  { label: 'Latina/o', active: true },
+  { label: 'Low-Income', active: false },
+  { label: 'Veterans', active: false },
+  { label: 'LGBTQ+', active: false },
+]
+
+const BROWSE_RESULTS = [
+  {
+    title: 'Hispanic Scholarship Fund — General Scholarship',
+    org: 'Hispanic Scholarship Fund',
+    type: 'Scholarship',
+    tags: ['Latina/o', 'First-Gen', 'Undergraduate'],
+    amount: 'Up to $5,000',
+  },
+  {
+    title: 'MAPA Health Careers Scholarship',
+    org: 'Midwest Association of Pre-Health Advisors',
+    type: 'Scholarship',
+    tags: ['First-Gen', 'Healthcare', 'Omaha'],
+    amount: 'Up to $3,000',
+  },
+  {
+    title: 'UFCW Charity Foundation Scholarship',
+    org: 'United Food & Commercial Workers',
+    type: 'Scholarship',
+    tags: ['First-Gen', 'Union Family', 'National'],
+    amount: '$12,000',
+  },
+]
+
+function BrowsePanel() {
+  return (
+    <div className="flex h-full flex-col gap-4">
+      {/* Header */}
+      <div>
+        <p className="text-[11px] uppercase tracking-widest text-cyan-400">Manual Browse</p>
+        <h3 className="mt-1 text-lg font-bold text-slate-100">Explore at your own pace</h3>
+        <p className="mt-1 text-sm text-slate-400">
+          Prefer to browse without AI? Filter by category, identity, or background — then sort
+          through every verified opportunity in your metro.
+        </p>
+      </div>
+
+      {/* Filter rows */}
+      <div className="space-y-2.5">
+        {/* Category filters */}
+        <div>
+          <p className="mb-1.5 text-[10px] uppercase tracking-widest text-slate-600">Category</p>
+          <div className="flex flex-wrap gap-1.5">
+            {CATEGORY_FILTERS.map((f) => (
+              <span
+                key={f.label}
+                className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ${
+                  f.active
+                    ? 'bg-cyan-400/10 text-cyan-300 ring-cyan-400/30'
+                    : 'bg-navy-900/50 text-slate-500 ring-navy-600'
+                }`}
+              >
+                {f.label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Identity filters */}
+        <div>
+          <p className="mb-1.5 text-[10px] uppercase tracking-widest text-slate-600">Identity / Background</p>
+          <div className="flex flex-wrap gap-1.5">
+            {IDENTITY_FILTERS.map((f) => (
+              <span
+                key={f.label}
+                className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ${
+                  f.active
+                    ? 'bg-sky-400/10 text-sky-300 ring-sky-400/25'
+                    : 'bg-navy-900/50 text-slate-500 ring-navy-600'
+                }`}
+              >
+                {f.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Divider + result count */}
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-navy-700" />
+        <span className="text-xs text-slate-500">14 matching opportunities in Omaha/CB</span>
+        <div className="h-px flex-1 bg-navy-700" />
+      </div>
+
+      {/* Results */}
+      <div className="flex flex-col gap-2 overflow-auto" style={{ minHeight: 0 }}>
+        {BROWSE_RESULTS.map((r) => (
+          <div
+            key={r.title}
+            className="flex items-start justify-between gap-3 rounded-xl border border-navy-600 bg-navy-900/60 p-3 transition-colors hover:border-cyan-400/20"
+          >
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold leading-snug text-slate-100">{r.title}</p>
+              <p className="mt-0.5 text-xs text-slate-500">{r.org}</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <span className="rounded-full bg-cyan-400/10 px-2 py-0.5 text-[10px] font-medium text-cyan-400 ring-1 ring-cyan-400/20">
+                  {r.type}
+                </span>
+                {r.tags.map((tag) => (
+                  <span key={tag} className="rounded-full border border-navy-600 px-2 py-0.5 text-[10px] text-slate-400">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="shrink-0 text-right">
+              <span className="text-xs font-semibold text-emerald-400">{r.amount}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 const PANELS: Record<ExampleId, React.ReactNode> = {
   prompt: <PromptPanel />,
   discover: <DiscoverPanel />,
   save: <SavePanel />,
+  browse: <BrowsePanel />,
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
