@@ -60,80 +60,169 @@ const CARDS = [
   },
 ]
 
+// Scroll budget per phase (title + 4 cards = 5 phases)
+const VH_PER_PHASE = 90
+
+// Phase progress boundaries (as fraction of total scroll budget)
+const TITLE_HOLD_END  = 0.12  // title fully visible until here
+const TITLE_FADE_END  = 0.25  // title gone by here
+const CARD_PHASES = [
+  { start: 0.25, end: 0.42 },
+  { start: 0.42, end: 0.59 },
+  { start: 0.59, end: 0.76 },
+  { start: 0.76, end: 0.92 },
+] as const
+
+function clamp(v: number, lo: number, hi: number) {
+  return Math.max(lo, Math.min(hi, v))
+}
+
+// easeOutCubic — fast in, settles cleanly
+function ease(t: number) {
+  return 1 - Math.pow(1 - t, 3)
+}
+
 export function InstitutionalIntegrations() {
-  const sectionRef = useRef<HTMLElement>(null)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const titleRef   = useRef<HTMLDivElement>(null)
+  const hintRef    = useRef<HTMLParagraphElement>(null)
   const cardRefs   = useRef<(HTMLDivElement | null)[]>([])
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const el = entry.target as HTMLElement
-            el.style.opacity    = '1'
-            el.style.transform  = 'translateY(0)'
-            observer.unobserve(el)
-          }
-        })
-      },
-      { threshold: 0.12 },
-    )
+    let raf = 0
 
-    cardRefs.current.forEach((el) => {
-      if (el) observer.observe(el)
-    })
+    function update() {
+      const wrapper = wrapperRef.current
+      if (!wrapper) return
 
-    return () => observer.disconnect()
+      const wrapperTop = wrapper.getBoundingClientRect().top + window.scrollY
+      const budget = wrapper.offsetHeight - window.innerHeight
+      if (budget <= 0) return
+
+      const into = window.scrollY - wrapperTop
+      const p = clamp(into / budget, 0, 1)
+
+      // ── Title ─────────────────────────────────────────────────
+      const titleEl = titleRef.current
+      if (titleEl) {
+        const tp = clamp(
+          (p - TITLE_HOLD_END) / (TITLE_FADE_END - TITLE_HOLD_END),
+          0, 1,
+        )
+        titleEl.style.opacity   = String((1 - tp).toFixed(3))
+        titleEl.style.transform = `translateY(${(-tp * 36).toFixed(1)}px)`
+        titleEl.style.pointerEvents = tp > 0.5 ? 'none' : 'auto'
+      }
+
+      // ── Scroll hint ───────────────────────────────────────────
+      const hintEl = hintRef.current
+      if (hintEl) {
+        const hp = clamp(p / TITLE_FADE_END, 0, 1)
+        hintEl.style.opacity = String((1 - hp).toFixed(3))
+      }
+
+      // ── Cards ─────────────────────────────────────────────────
+      const slideX = Math.min(window.innerWidth * 0.7, 520)
+
+      cardRefs.current.forEach((el, i) => {
+        if (!el) return
+        const phase = CARD_PHASES[i]
+        if (!phase) return
+        const cp = clamp(
+          (p - phase.start) / (phase.end - phase.start),
+          0, 1,
+        )
+        const easedP = ease(cp)
+        // even cards (0, 2) → enter from left; odd (1, 3) → from right
+        const dir = i % 2 === 0 ? -1 : 1
+        const tx  = dir * slideX * (1 - easedP)
+        el.style.transform = `translateX(${tx.toFixed(1)}px)`
+        el.style.opacity   = String(easedP.toFixed(3))
+      })
+    }
+
+    function onScroll() {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(update)
+    }
+
+    // Position everything correctly before first scroll
+    update()
+
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', update)
+      cancelAnimationFrame(raf)
+    }
   }, [])
 
+  const totalHeight = `${CARDS.length * VH_PER_PHASE + VH_PER_PHASE}vh`
+
   return (
-    <section
-      ref={sectionRef}
-      aria-label="Institutional Integrations"
-      className="mx-4 px-6 py-16 md:mx-16 lg:mx-24"
-    >
-      <div className="mx-auto max-w-6xl">
-        {/* Heading */}
-        <h2 className="font-display mb-3 text-center text-2xl font-bold text-slate-50 md:text-3xl">
-          Built for Every Corner of the Community
-        </h2>
-        <p className="mb-12 text-center text-sm leading-relaxed text-slate-500">
-          Opportography integrates with the institutions that shape where people go next.
-        </p>
+    <div ref={wrapperRef} style={{ height: totalHeight, overflowX: 'clip' }}>
+      <div className="sticky top-0 overflow-hidden" style={{ height: '100vh' }}>
 
-        {/* Card grid */}
-        <div className="grid gap-5 sm:grid-cols-2">
-          {CARDS.map((card, i) => (
-            <div
-              key={card.title}
-              ref={(el) => { cardRefs.current[i] = el }}
-              style={{
-                background: card.accent,
-                border: `1px solid ${card.border}`,
-                opacity: 0,
-                transform: 'translateY(24px)',
-                transition: `opacity 0.55s ease ${i * 0.1}s, transform 0.55s ease ${i * 0.1}s`,
-              }}
-              className="rounded-lg p-6 backdrop-blur-sm"
-            >
-              {/* Icon */}
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-md border border-navy-600 bg-navy-800/70">
-                {card.icon}
-              </div>
-
-              {/* Heading */}
-              <h3 className="font-display mb-3 text-base font-bold leading-snug text-slate-100">
-                {card.title}
-              </h3>
-
-              {/* Copy */}
-              <p className="text-sm leading-relaxed text-slate-400">
-                {card.copy}
-              </p>
-            </div>
-          ))}
+        {/* ── Title phase ─────────────────────────────────────── */}
+        <div
+          ref={titleRef}
+          className="absolute inset-0 flex flex-col items-center justify-center px-6"
+          style={{ willChange: 'transform, opacity', zIndex: 10 }}
+        >
+          <p className="mb-4 text-[11px] uppercase tracking-widest text-cyan-400">
+            Platform
+          </p>
+          <h2 className="font-display max-w-2xl text-center text-3xl font-bold text-slate-50 md:text-4xl lg:text-5xl">
+            Opportography integrates into...
+          </h2>
         </div>
+
+        {/* ── Cards grid ──────────────────────────────────────── */}
+        <div className="absolute inset-0 flex items-center justify-center px-4 py-16 md:px-16 lg:px-24">
+          <div className="grid w-full max-w-5xl gap-5 sm:grid-cols-2">
+            {CARDS.map((card, i) => (
+              <div
+                key={card.title}
+                ref={(el) => { cardRefs.current[i] = el }}
+                style={{
+                  background: card.accent,
+                  border: `1px solid ${card.border}`,
+                  opacity: 0,
+                  willChange: 'transform, opacity',
+                }}
+                className="rounded-lg p-6 backdrop-blur-sm"
+              >
+                {/* Icon */}
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-md border border-navy-600 bg-navy-800/70">
+                  {card.icon}
+                </div>
+
+                {/* Heading */}
+                <h3 className="font-display mb-3 text-base font-bold leading-snug text-slate-100">
+                  {card.title}
+                </h3>
+
+                {/* Copy */}
+                <p className="text-sm leading-relaxed text-slate-400">
+                  {card.copy}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Scroll hint ─────────────────────────────────────── */}
+        <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center">
+          <p
+            ref={hintRef}
+            className="text-[11px] uppercase tracking-widest text-slate-600"
+          >
+            scroll to explore
+          </p>
+        </div>
+
       </div>
-    </section>
+    </div>
   )
 }
