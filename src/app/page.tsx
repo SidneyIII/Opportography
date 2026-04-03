@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { getAllOpportunities, getMetroAreas } from '@/lib/queries'
 import { getTypeLabel, allTypes } from '@/lib/utils'
-import { DemoMatchBox } from '@/components/DemoMatchBox'
+import { AIDemoShowcase } from '@/components/AIDemoShowcase'
 import { MetroSelector } from '@/components/MetroSelector'
 import { CinematicCarousel } from '@/components/CinematicCarousel'
 import { IdentityGroups } from '@/components/IdentityGroups'
@@ -61,10 +61,8 @@ export default async function HomePage() {
       {/* The Problem */}
       <TheProblem />
 
-      {/* AI Demo Match Box */}
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <DemoMatchBox totalOpportunities={all.length} />
-      </section>
+      {/* AI Demo Showcase */}
+      <AIDemoShowcase />
 
       {/* Browse by Identity — grouped category boxes */}
       <IdentityGroups />
