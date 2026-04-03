@@ -61,17 +61,17 @@ const CARDS = [
 ]
 
 // Scroll budget per phase (title + 4 cards = 5 phases)
-const VH_PER_PHASE = 75
+const VH_PER_PHASE = 65
 
 // Phase progress boundaries (as fraction of total scroll budget)
-// Card 0 starts while title is still fading — eliminates blank gap
-const TITLE_HOLD_END  = 0.06  // title fully visible until here
-const TITLE_FADE_END  = 0.20  // title gone by here
+// Card 0 enters almost immediately — title and first card overlap heavily
+const TITLE_HOLD_END  = 0.02  // title static for just a beat
+const TITLE_FADE_END  = 0.20  // title fully gone by here
 const CARD_PHASES = [
-  { start: 0.16, end: 0.34 },  // overlaps with tail of title fade
-  { start: 0.34, end: 0.54 },
-  { start: 0.54, end: 0.72 },
-  { start: 0.72, end: 0.90 },
+  { start: 0.04, end: 0.26 },  // starts on first scroll — coincides with title midpoint
+  { start: 0.26, end: 0.48 },
+  { start: 0.48, end: 0.68 },
+  { start: 0.68, end: 0.88 },
 ] as const
 
 function clamp(v: number, lo: number, hi: number) {
