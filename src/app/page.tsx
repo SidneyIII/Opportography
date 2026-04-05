@@ -23,7 +23,7 @@ export default async function HomePage() {
 
       {/* Hero — fade in on load */}
       <section
-        className="scroll-reveal glow-a relative px-4 pt-6 pb-0 md:pt-10 md:pb-0"
+        className="scroll-reveal relative px-4 pt-6 pb-0 md:pt-10 md:pb-0"
         data-reveal="load"
       >
         <div className="mx-auto max-w-4xl text-center">
@@ -62,22 +62,22 @@ export default async function HomePage() {
       </section>
 
       {/* Featured Opportunities — Cinematic Scroll Carousel — fade in on load */}
-      <div className="scroll-reveal glow-b" data-reveal="load">
+      <div className="scroll-reveal" data-reveal="load">
         <CinematicCarousel />
       </div>
 
       {/* The Problem */}
-      <div className="scroll-reveal glow-c">
+      <div className="scroll-reveal">
         <TheProblem />
       </div>
 
       {/* AI Demo Showcase */}
-      <div className="scroll-reveal glow-d">
+      <div className="scroll-reveal">
         <AIDemoShowcase />
       </div>
 
       {/* Browse by Identity — grouped category boxes */}
-      <div className="scroll-reveal glow-a">
+      <div className="scroll-reveal">
         <IdentityGroups />
       </div>
 
@@ -101,7 +101,7 @@ export default async function HomePage() {
       <InstitutionalIntegrations />
 
       {/* CTA */}
-      <section className="scroll-reveal glow-c px-4 py-16">
+      <section className="scroll-reveal px-4 py-16">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold text-slate-50">You belong here.</h2>
           <p className="mt-3 text-slate-400">

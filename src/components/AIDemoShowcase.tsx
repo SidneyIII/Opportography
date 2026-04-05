@@ -497,7 +497,7 @@ export function AIDemoShowcase() {
 
       {/* Demo shell */}
       <div
-        className="overflow-hidden rounded-2xl border border-navy-600"
+        className="overflow-hidden rounded-2xl border border-navy-600 glow-c"
         style={{ background: 'rgba(10, 16, 40, 0.85)' }}
       >
         <div className="flex min-h-[520px] flex-col md:flex-row">

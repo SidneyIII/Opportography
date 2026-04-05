@@ -203,7 +203,36 @@ body::before {
   .scroll-reveal.is-visible.glow-a,
   .scroll-reveal.is-visible.glow-b,
   .scroll-reveal.is-visible.glow-c,
-  .scroll-reveal.is-visible.glow-d {
+  .scroll-reveal.is-visible.glow-d,
+  .glow-a:not(.scroll-reveal),
+  .glow-b:not(.scroll-reveal),
+  .glow-c:not(.scroll-reveal),
+  .glow-d:not(.scroll-reveal) {
     animation: none !important;
   }
+}
+
+/*
+  Standalone glow — for visible card/box elements inside a scroll-reveal wrapper.
+  These animate freely; the parent wrapper's opacity handles initial visibility.
+*/
+.glow-a:not(.scroll-reveal) {
+  animation:
+    section-glow-a  5s          ease-in-out infinite alternate,
+    section-float-a 4.2s        ease-in-out infinite alternate;
+}
+.glow-b:not(.scroll-reveal) {
+  animation:
+    section-glow-b  5.5s        ease-in-out infinite alternate,
+    section-float-b 5s   -1.2s  ease-in-out infinite alternate;
+}
+.glow-c:not(.scroll-reveal) {
+  animation:
+    section-glow-c  4.8s        ease-in-out infinite alternate,
+    section-float-c 4.6s -0.8s  ease-in-out infinite alternate;
+}
+.glow-d:not(.scroll-reveal) {
+  animation:
+    section-glow-d  6s          ease-in-out infinite alternate,
+    section-float-d 5.4s -2s    ease-in-out infinite alternate;
 }

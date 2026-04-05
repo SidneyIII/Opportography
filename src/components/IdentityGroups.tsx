@@ -66,10 +66,10 @@ export function IdentityGroups() {
         </p>
 
         <div className="grid gap-5 sm:grid-cols-2">
-          {GROUPS.map((group) => (
+          {GROUPS.map((group, i) => (
             <div
               key={group.title}
-              className={`rounded-lg ${group.topBorder} p-6 backdrop-blur-sm`}
+              className={`rounded-lg ${group.topBorder} p-6 backdrop-blur-sm ${['glow-a','glow-b','glow-c','glow-d'][i % 4]}`}
               style={{ background: group.bg, border: `1px solid ${group.border}`, borderTopWidth: '2px' }}
             >
               {/* Header */}
