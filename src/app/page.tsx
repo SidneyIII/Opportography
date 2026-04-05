@@ -25,7 +25,6 @@ export default async function HomePage() {
       <section
         className="scroll-reveal glow-a relative px-4 pt-6 pb-0 md:pt-10 md:pb-0"
         data-reveal="load"
-        style={{ animationDelay: '0s' }}
       >
         <div className="mx-auto max-w-4xl text-center">
           {/* Metro selector pill — city-aware, Coming Soon for inactive metros */}
@@ -63,34 +62,27 @@ export default async function HomePage() {
       </section>
 
       {/* Featured Opportunities — Cinematic Scroll Carousel — fade in on load */}
-      <div
-        className="scroll-reveal glow-b"
-        data-reveal="load"
-        style={{ animationDelay: '1.2s' }}
-      >
+      <div className="scroll-reveal glow-b" data-reveal="load">
         <CinematicCarousel />
       </div>
 
       {/* The Problem */}
-      <div className="scroll-reveal glow-c" style={{ animationDelay: '0.6s' }}>
+      <div className="scroll-reveal glow-c">
         <TheProblem />
       </div>
 
       {/* AI Demo Showcase */}
-      <div className="scroll-reveal glow-d" style={{ animationDelay: '1.8s' }}>
+      <div className="scroll-reveal glow-d">
         <AIDemoShowcase />
       </div>
 
       {/* Browse by Identity — grouped category boxes */}
-      <div className="scroll-reveal glow-a" style={{ animationDelay: '0.3s' }}>
+      <div className="scroll-reveal glow-a">
         <IdentityGroups />
       </div>
 
       {/* Browse by Type */}
-      <section
-        className="scroll-reveal glow-b mx-4 my-2 rounded-xl border border-navy-600 bg-navy-900/50 px-6 py-12 md:mx-16 lg:mx-24"
-        style={{ animationDelay: '1.5s' }}
-      >
+      <section className="scroll-reveal glow-b mx-4 my-2 rounded-xl border border-navy-600 bg-navy-900/50 px-6 py-12 md:mx-16 lg:mx-24">
         <h2 className="font-display mb-6 text-center text-2xl font-bold text-slate-50">Browse by Type</h2>
         <div className="flex flex-wrap gap-3 scroll-reveal-stagger">
           {allTypes.map((type) => (
@@ -109,10 +101,7 @@ export default async function HomePage() {
       <InstitutionalIntegrations />
 
       {/* CTA */}
-      <section
-        className="scroll-reveal glow-c px-4 py-16"
-        style={{ animationDelay: '0.9s' }}
-      >
+      <section className="scroll-reveal glow-c px-4 py-16">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold text-slate-50">You belong here.</h2>
           <p className="mt-3 text-slate-400">

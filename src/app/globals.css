@@ -134,33 +134,61 @@ body::before {
 .scroll-reveal-stagger > *:nth-child(5) { transition-delay: 320ms; }
 .scroll-reveal-stagger > *:nth-child(n+6) { transition-delay: 400ms; }
 
-/* ── Floating glow keyframes (box-shadow only — no transform conflict) ────── */
+/* ── Glow keyframes (box-shadow only) ────────────────────────────────────── */
 
-@keyframes section-float-a {
+@keyframes section-glow-a {
   0%   { box-shadow: 0 0 32px 4px rgba(30, 80, 180, 0.09),  0 4px 24px rgba(0,0,0,0.18); }
   100% { box-shadow: 0 0 44px 8px rgba(30, 80, 180, 0.13),  0 8px 30px rgba(0,0,0,0.20); }
 }
 
-@keyframes section-float-b {
+@keyframes section-glow-b {
   0%   { box-shadow: 0 0 36px 6px rgba(0, 195, 255, 0.07),  0 4px 24px rgba(0,0,0,0.18); }
   100% { box-shadow: 0 0 50px 10px rgba(0, 195, 255, 0.11), 0 8px 30px rgba(0,0,0,0.20); }
 }
 
-@keyframes section-float-c {
+@keyframes section-glow-c {
   0%   { box-shadow: 0 0 28px 4px rgba(56, 130, 230, 0.08), 0 4px 24px rgba(0,0,0,0.18); }
   100% { box-shadow: 0 0 40px 8px rgba(56, 130, 230, 0.12), 0 8px 30px rgba(0,0,0,0.20); }
 }
 
-@keyframes section-float-d {
+@keyframes section-glow-d {
   0%   { box-shadow: 0 0 40px 6px rgba(0, 210, 200, 0.06),  0 4px 24px rgba(0,0,0,0.18); }
   100% { box-shadow: 0 0 54px 10px rgba(0, 210, 200, 0.10), 0 8px 30px rgba(0,0,0,0.20); }
 }
 
-/* Glow activates only after element is revealed (avoids conflict with reveal transition) */
-.scroll-reveal.is-visible.glow-a { animation: section-float-a 5s   ease-in-out infinite alternate; }
-.scroll-reveal.is-visible.glow-b { animation: section-float-b 5.5s ease-in-out infinite alternate; }
-.scroll-reveal.is-visible.glow-c { animation: section-float-c 4.8s ease-in-out infinite alternate; }
-.scroll-reveal.is-visible.glow-d { animation: section-float-d 6s   ease-in-out infinite alternate; }
+/* ── Float keyframes (translateY only) ───────────────────────────────────── */
+/* Four variants so adjacent sections bob at different rates / phases         */
+
+@keyframes section-float-a { 0% { transform: translateY(0px); } 100% { transform: translateY(-3px); } }
+@keyframes section-float-b { 0% { transform: translateY(0px); } 100% { transform: translateY(-2px); } }
+@keyframes section-float-c { 0% { transform: translateY(0px); } 100% { transform: translateY(-3px); } }
+@keyframes section-float-d { 0% { transform: translateY(0px); } 100% { transform: translateY(-2px); } }
+
+/*
+  Both animations start after the scroll-reveal transition completes (0.65s delay).
+  Float uses negative delay offsets per variant so sections are already at
+  different points in their cycle — they never bob in sync.
+*/
+.scroll-reveal.is-visible.glow-a {
+  animation:
+    section-glow-a  5s   0.65s  ease-in-out infinite alternate,
+    section-float-a 4.2s 0.65s  ease-in-out infinite alternate;
+}
+.scroll-reveal.is-visible.glow-b {
+  animation:
+    section-glow-b  5.5s 0.65s  ease-in-out infinite alternate,
+    section-float-b 5s   -1.2s  ease-in-out infinite alternate;
+}
+.scroll-reveal.is-visible.glow-c {
+  animation:
+    section-glow-c  4.8s 0.65s  ease-in-out infinite alternate,
+    section-float-c 4.6s -0.8s  ease-in-out infinite alternate;
+}
+.scroll-reveal.is-visible.glow-d {
+  animation:
+    section-glow-d  6s   0.65s  ease-in-out infinite alternate,
+    section-float-d 5.4s -2s    ease-in-out infinite alternate;
+}
 
 /* ── Reduced-motion overrides ─────────────────────────────────────────────── */
 /* Unlayered rules beat @layer base — ensures hidden elements are visible     */
