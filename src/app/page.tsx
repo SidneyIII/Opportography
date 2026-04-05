@@ -9,6 +9,7 @@ import { CinematicCarousel } from '@/components/CinematicCarousel'
 import { IdentityGroups } from '@/components/IdentityGroups'
 import { TheProblem } from '@/components/TheProblem'
 import { InstitutionalIntegrations } from '@/components/InstitutionalIntegrations'
+import { ScrollRevealInit } from '@/components/ScrollRevealInit'
 
 export default async function HomePage() {
   const [all, metros] = await Promise.all([
@@ -18,8 +19,14 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* Hero */}
-      <section className="relative px-4 pt-6 pb-0 md:pt-10 md:pb-0">
+      <ScrollRevealInit />
+
+      {/* Hero — fade in on load */}
+      <section
+        className="scroll-reveal glow-a relative px-4 pt-6 pb-0 md:pt-10 md:pb-0"
+        data-reveal="load"
+        style={{ animationDelay: '0s' }}
+      >
         <div className="mx-auto max-w-4xl text-center">
           {/* Metro selector pill — city-aware, Coming Soon for inactive metros */}
           <div className="mb-4 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
@@ -55,22 +62,37 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Opportunities — Cinematic Scroll Carousel */}
-      <CinematicCarousel />
+      {/* Featured Opportunities — Cinematic Scroll Carousel — fade in on load */}
+      <div
+        className="scroll-reveal glow-b"
+        data-reveal="load"
+        style={{ animationDelay: '1.2s' }}
+      >
+        <CinematicCarousel />
+      </div>
 
       {/* The Problem */}
-      <TheProblem />
+      <div className="scroll-reveal glow-c" style={{ animationDelay: '0.6s' }}>
+        <TheProblem />
+      </div>
 
       {/* AI Demo Showcase */}
-      <AIDemoShowcase />
+      <div className="scroll-reveal glow-d" style={{ animationDelay: '1.8s' }}>
+        <AIDemoShowcase />
+      </div>
 
       {/* Browse by Identity — grouped category boxes */}
-      <IdentityGroups />
+      <div className="scroll-reveal glow-a" style={{ animationDelay: '0.3s' }}>
+        <IdentityGroups />
+      </div>
 
       {/* Browse by Type */}
-      <section className="mx-4 my-2 rounded-xl border border-navy-600 bg-navy-900/50 px-6 py-12 md:mx-16 lg:mx-24">
+      <section
+        className="scroll-reveal glow-b mx-4 my-2 rounded-xl border border-navy-600 bg-navy-900/50 px-6 py-12 md:mx-16 lg:mx-24"
+        style={{ animationDelay: '1.5s' }}
+      >
         <h2 className="font-display mb-6 text-center text-2xl font-bold text-slate-50">Browse by Type</h2>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 scroll-reveal-stagger">
           {allTypes.map((type) => (
             <Link
               key={type}
@@ -83,11 +105,14 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Institutional Integrations */}
+      {/* Institutional Integrations — no scroll-reveal (owns its own scroll animation) */}
       <InstitutionalIntegrations />
 
       {/* CTA */}
-      <section className="px-4 py-16">
+      <section
+        className="scroll-reveal glow-c px-4 py-16"
+        style={{ animationDelay: '0.9s' }}
+      >
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold text-slate-50">You belong here.</h2>
           <p className="mt-3 text-slate-400">
