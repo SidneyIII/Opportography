@@ -116,8 +116,8 @@ body::before {
 .scroll-reveal {
   opacity: 0;
   transform: translateY(22px);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.30, 1),
-              transform 0.6s cubic-bezier(0.16, 1, 0.30, 1);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.30, 1),
+              transform 0.9s cubic-bezier(0.16, 1, 0.30, 1);
   will-change: transform, opacity;
 }
 
@@ -165,28 +165,28 @@ body::before {
 @keyframes section-float-d { 0% { transform: translateY(0px); } 100% { transform: translateY(-2px); } }
 
 /*
-  Both animations start after the scroll-reveal transition completes (0.65s delay).
+  Both animations start after the scroll-reveal transition completes (1s delay).
   Float uses negative delay offsets per variant so sections are already at
   different points in their cycle — they never bob in sync.
 */
 .scroll-reveal.is-visible.glow-a {
   animation:
-    section-glow-a  5s   0.65s  ease-in-out infinite alternate,
-    section-float-a 4.2s 0.65s  ease-in-out infinite alternate;
+    section-glow-a  5s   1s  ease-in-out infinite alternate,
+    section-float-a 4.2s 1s  ease-in-out infinite alternate;
 }
 .scroll-reveal.is-visible.glow-b {
   animation:
-    section-glow-b  5.5s 0.65s  ease-in-out infinite alternate,
+    section-glow-b  5.5s 1s  ease-in-out infinite alternate,
     section-float-b 5s   -1.2s  ease-in-out infinite alternate;
 }
 .scroll-reveal.is-visible.glow-c {
   animation:
-    section-glow-c  4.8s 0.65s  ease-in-out infinite alternate,
+    section-glow-c  4.8s 1s  ease-in-out infinite alternate,
     section-float-c 4.6s -0.8s  ease-in-out infinite alternate;
 }
 .scroll-reveal.is-visible.glow-d {
   animation:
-    section-glow-d  6s   0.65s  ease-in-out infinite alternate,
+    section-glow-d  6s   1s  ease-in-out infinite alternate,
     section-float-d 5.4s -2s    ease-in-out infinite alternate;
 }
 
