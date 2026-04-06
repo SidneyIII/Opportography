@@ -207,9 +207,22 @@ body::before {
   .glow-a:not(.scroll-reveal),
   .glow-b:not(.scroll-reveal),
   .glow-c:not(.scroll-reveal),
-  .glow-d:not(.scroll-reveal) {
+  .glow-d:not(.scroll-reveal),
+  .float-only,
+  .scroll-reveal.is-visible.float-only {
     animation: none !important;
   }
+}
+
+/*
+  Float-only — for text/borderless sections that should bob but have no visible box.
+  Uses translateY only; no box-shadow so nothing appears around borderless sections.
+*/
+.float-only {
+  animation: section-float-b 3.8s ease-in-out infinite alternate;
+}
+.scroll-reveal.is-visible.float-only {
+  animation: section-float-b 3.8s 1s ease-in-out infinite alternate;
 }
 
 /*
