@@ -141,7 +141,9 @@ export function InstitutionalIntegrations() {
         // even cards (0, 2) → enter from left; odd (1, 3) → from right
         const dir = i % 2 === 0 ? -1 : 1
         const tx  = dir * slideX * (1 - easedP)
-        el.style.transform = `translateX(${tx.toFixed(1)}px)`
+        // Use CSS `translate` (standalone property) instead of `transform` so
+        // a CSS float animation on `transform` can run simultaneously.
+        el.style.translate = `${tx.toFixed(1)}px 0`
         el.style.opacity   = String(easedP.toFixed(3))
       })
     }
@@ -194,9 +196,9 @@ export function InstitutionalIntegrations() {
                   background: card.accent,
                   border: `1px solid ${card.border}`,
                   opacity: 0,
-                  willChange: 'transform, opacity',
+                  willChange: 'translate, opacity',
                 }}
-                className="rounded-lg p-3 backdrop-blur-sm md:p-6"
+                className={`rounded-lg p-3 backdrop-blur-sm md:p-6 ${['glow-a','glow-b','glow-c','glow-d'][i % 4]}`}
               >
                 {/* Icon */}
                 <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md border border-navy-600 bg-navy-800/70 md:mb-4 md:h-10 md:w-10">
