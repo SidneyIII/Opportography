@@ -67,7 +67,7 @@ export default async function HomePage() {
       </div>
 
       {/* The Problem */}
-      <div className="scroll-reveal">
+      <div className="scroll-reveal" style={{ marginTop: '-15vh' }}>
         <TheProblem />
       </div>
 

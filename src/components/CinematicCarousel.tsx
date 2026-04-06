@@ -67,6 +67,7 @@ const VH_PER_CARD = 80
 
 export function CinematicCarousel() {
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const stickyRef  = useRef<HTMLDivElement>(null)
   const cardEls    = useRef<(HTMLDivElement | null)[]>([])
   const dotEls     = useRef<(HTMLSpanElement | null)[]>([])
 
@@ -145,11 +146,10 @@ export function CinematicCarousel() {
   return (
     <div ref={wrapperRef} style={{ height: totalHeight, overflowX: 'clip' }}>
       <div
-        className="sticky top-0 overflow-hidden flex flex-col items-center"
+        ref={stickyRef}
+        className="sticky top-0 overflow-hidden flex flex-col items-center justify-center"
         style={{ height: '100vh' }}
       >
-        {/* Top spacer — keeps cards off the very top edge */}
-        <div className="shrink-0" style={{ height: 'clamp(16px, 4vh, 40px)' }} />
 
         {/*
           Card container — fixed height calibrated to the card content
@@ -165,7 +165,7 @@ export function CinematicCarousel() {
         */}
         <div
           className="relative shrink-0 w-full overflow-visible flex justify-center"
-          style={{ height: 'clamp(340px, 50vh, 430px)' }}
+          style={{ height: 'clamp(360px, 52vh, 460px)' }}
         >
           {CARDS.map((card, i) => (
             <div

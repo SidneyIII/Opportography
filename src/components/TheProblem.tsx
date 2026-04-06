@@ -1,6 +1,6 @@
 export function TheProblem() {
   return (
-    <section className="mx-auto max-w-3xl px-6 pt-10 pb-20 md:px-4 float-only">
+    <section className="mx-auto max-w-3xl px-6 pt-4 pb-20 md:px-4 float-only">
 
       {/* Gladwell quote */}
       <blockquote className="mb-14 text-center">
