@@ -60,15 +60,16 @@ const CARDS = [
   },
 ]
 
+const GLOW_CLASSES = ['glow-a', 'glow-b', 'glow-c', 'glow-d'] as const
+
 // Scroll budget per phase (title + 4 cards = 5 phases)
 const VH_PER_PHASE = 65
 
 // Phase progress boundaries (as fraction of total scroll budget)
-// Card 0 enters almost immediately — title and first card overlap heavily
-const TITLE_HOLD_END  = 0.02  // title static for just a beat
-const TITLE_FADE_END  = 0.20  // title fully gone by here
+const TITLE_HOLD_END  = 0.02
+const TITLE_FADE_END  = 0.20
 const CARD_PHASES = [
-  { start: 0.04, end: 0.26 },  // starts on first scroll — coincides with title midpoint
+  { start: 0.04, end: 0.26 },
   { start: 0.26, end: 0.48 },
   { start: 0.48, end: 0.68 },
   { start: 0.68, end: 0.88 },
@@ -78,7 +79,6 @@ function clamp(v: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, v))
 }
 
-// easeOutCubic — fast in, settles cleanly
 function ease(t: number) {
   return 1 - Math.pow(1 - t, 3)
 }
@@ -97,9 +97,9 @@ export function InstitutionalIntegrations() {
       if (!wrapper) return
 
       const wrapperTop = wrapper.getBoundingClientRect().top + window.scrollY
-      // clientHeight is stable on iOS Safari (excludes dynamic address bar)
       const vh = document.documentElement.clientHeight
       const budget = wrapper.offsetHeight - vh
+      // Bails on mobile where the cinematic wrapper is display:none (offsetHeight = 0)
       if (budget <= 0) return
 
       const into = window.scrollY - wrapperTop
@@ -125,8 +125,6 @@ export function InstitutionalIntegrations() {
       }
 
       // ── Cards ─────────────────────────────────────────────────
-      // Use full viewport width + buffer so cards are always completely
-      // off-screen before entering, regardless of device width or card size
       const slideX = window.innerWidth + 80
 
       cardRefs.current.forEach((el, i) => {
@@ -138,11 +136,9 @@ export function InstitutionalIntegrations() {
           0, 1,
         )
         const easedP = ease(cp)
-        // even cards (0, 2) → enter from left; odd (1, 3) → from right
         const dir = i % 2 === 0 ? -1 : 1
         const tx  = dir * slideX * (1 - easedP)
-        // Use CSS `translate` (standalone property) instead of `transform` so
-        // a CSS float animation on `transform` can run simultaneously.
+        // CSS `translate` (standalone property) lets CSS float `transform` coexist
         el.style.translate = `${tx.toFixed(1)}px 0`
         el.style.opacity   = String(easedP.toFixed(3))
       })
@@ -153,7 +149,6 @@ export function InstitutionalIntegrations() {
       raf = requestAnimationFrame(update)
     }
 
-    // Position everything correctly before first scroll
     update()
 
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -168,68 +163,105 @@ export function InstitutionalIntegrations() {
   const totalHeight = `${CARDS.length * VH_PER_PHASE + VH_PER_PHASE}vh`
 
   return (
-    <div ref={wrapperRef} style={{ height: totalHeight, overflowX: 'clip' }}>
-      <div className="sticky top-0 overflow-hidden" style={{ height: '100vh' }}>
-
-        {/* ── Title phase ─────────────────────────────────────── */}
-        <div
-          ref={titleRef}
-          className="absolute inset-0 flex flex-col items-center justify-start pt-24 px-6 md:pt-28"
-          style={{ willChange: 'transform, opacity', zIndex: 10 }}
-        >
-          <p className="mb-4 text-[11px] uppercase tracking-widest text-cyan-400">
-            Platform
-          </p>
-          <h2 className="font-display max-w-2xl text-center text-3xl font-bold text-slate-50 md:text-4xl lg:text-5xl">
+    <>
+      {/* ── Mobile: static single-column layout (< md) ───────────────────────
+          The cinematic sticky section can't fit 4 tall cards + descriptions
+          in a 100vh container on narrow viewports, so we render a plain
+          scrollable layout instead. Hidden on md+ where the animation runs. */}
+      <div className="md:hidden px-4 py-14">
+        <div className="mb-10 text-center">
+          <p className="mb-3 text-[11px] uppercase tracking-widest text-cyan-400">Platform</p>
+          <h2 className="font-display text-3xl font-bold text-slate-50">
             Opportography integrates into...
           </h2>
         </div>
-
-        {/* ── Cards grid ──────────────────────────────────────── */}
-        <div className="absolute inset-0 flex items-center justify-center px-3 py-14 md:px-16 lg:px-24">
-          <div className="grid w-full max-w-5xl grid-cols-2 gap-3 md:gap-5">
-            {CARDS.map((card, i) => (
-              <div
-                key={card.title}
-                ref={(el) => { cardRefs.current[i] = el }}
-                style={{
-                  background: card.accent,
-                  border: `1px solid ${card.border}`,
-                  opacity: 0,
-                  willChange: 'translate, opacity',
-                }}
-                className={`rounded-lg p-3 backdrop-blur-sm md:p-6 ${['glow-a','glow-b','glow-c','glow-d'][i % 4]}`}
-              >
-                {/* Icon */}
-                <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md border border-navy-600 bg-navy-800/70 md:mb-4 md:h-10 md:w-10">
-                  {card.icon}
-                </div>
-
-                {/* Heading */}
-                <h3 className="font-display mb-1 text-xs font-bold leading-snug text-slate-100 md:mb-3 md:text-base">
-                  {card.title}
-                </h3>
-
-                {/* Copy */}
-                <p className="hidden text-sm leading-relaxed text-slate-400 md:block">
-                  {card.copy}
-                </p>
+        <div className="flex flex-col gap-4">
+          {CARDS.map((card, i) => (
+            <div
+              key={card.title}
+              className={`rounded-lg p-5 backdrop-blur-sm ${GLOW_CLASSES[i % 4]}`}
+              style={{ background: card.accent, border: `1px solid ${card.border}` }}
+            >
+              <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-md border border-navy-600 bg-navy-800/70">
+                {card.icon}
               </div>
-            ))}
-          </div>
+              <h3 className="font-display mb-2 text-sm font-bold leading-snug text-slate-100">
+                {card.title}
+              </h3>
+              <p className="text-sm leading-relaxed text-slate-400">
+                {card.copy}
+              </p>
+            </div>
+          ))}
         </div>
-
-        {/* ── Scroll hint ─────────────────────────────────────── */}
-        <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center">
-          <p
-            ref={hintRef}
-            className="text-[11px] uppercase tracking-widest text-slate-600"
-          >
-            scroll to explore
-          </p>
-        </div>
-
       </div>
-    </div>
+
+      {/* ── Desktop: cinematic sticky scroll animation (md+) ─────────────────
+          wrapperRef is on this element; on mobile it's display:none so
+          offsetHeight = 0 and the JS update() bails at `if (budget <= 0)`. */}
+      <div ref={wrapperRef} className="hidden md:block" style={{ height: totalHeight, overflowX: 'clip' }}>
+        <div className="sticky top-0 overflow-hidden" style={{ height: '100vh' }}>
+
+          {/* ── Title phase ───────────────────────────────────── */}
+          <div
+            ref={titleRef}
+            className="absolute inset-0 flex flex-col items-center justify-start pt-24 px-6 md:pt-28"
+            style={{ willChange: 'transform, opacity', zIndex: 10 }}
+          >
+            <p className="mb-4 text-[11px] uppercase tracking-widest text-cyan-400">
+              Platform
+            </p>
+            <h2 className="font-display max-w-2xl text-center text-3xl font-bold text-slate-50 md:text-4xl lg:text-5xl">
+              Opportography integrates into...
+            </h2>
+          </div>
+
+          {/* ── Cards grid ────────────────────────────────────── */}
+          <div className="absolute inset-0 flex items-center justify-center px-3 py-14 md:px-16 lg:px-24">
+            <div className="grid w-full max-w-5xl grid-cols-2 gap-3 md:gap-5">
+              {CARDS.map((card, i) => (
+                <div
+                  key={card.title}
+                  ref={(el) => { cardRefs.current[i] = el }}
+                  style={{
+                    background: card.accent,
+                    border: `1px solid ${card.border}`,
+                    opacity: 0,
+                    willChange: 'translate, opacity',
+                  }}
+                  className={`rounded-lg p-3 backdrop-blur-sm md:p-6 ${GLOW_CLASSES[i % 4]}`}
+                >
+                  {/* Icon */}
+                  <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md border border-navy-600 bg-navy-800/70 md:mb-4 md:h-10 md:w-10">
+                    {card.icon}
+                  </div>
+
+                  {/* Heading */}
+                  <h3 className="font-display mb-1 text-xs font-bold leading-snug text-slate-100 md:mb-3 md:text-base">
+                    {card.title}
+                  </h3>
+
+                  {/* Copy — visible on all breakpoints within the desktop layout */}
+                  <p className="text-xs leading-relaxed text-slate-400 md:text-sm">
+                    {card.copy}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Scroll hint ───────────────────────────────────── */}
+          <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center">
+            <p
+              ref={hintRef}
+              className="text-[11px] uppercase tracking-widest text-slate-600"
+            >
+              scroll to explore
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </>
   )
 }
