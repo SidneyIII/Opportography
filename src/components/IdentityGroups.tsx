@@ -5,8 +5,8 @@ const GROUPS = [
     title: 'Ethnic Identity',
     description: 'Opportunities tailored to your cultural background and heritage.',
     topBorder: 'border-t-2 border-t-cyan-400',
-    bg: 'rgba(34, 211, 238, 0.07)',
-    border: 'rgba(34, 211, 238, 0.18)',
+    bg: 'rgba(14, 28, 54, 0.75)',
+    border: 'rgba(34, 211, 238, 0.28)',
     links: [
       { label: 'Hispanic / Latino Students',                    href: '/for/hispanic' },
       { label: 'Black / African American Students',             href: '/for/black' },
@@ -19,8 +19,8 @@ const GROUPS = [
     title: 'Life Circumstances',
     description: 'Opportunities for students navigating financial, systemic, or personal challenges.',
     topBorder: 'border-t-2 border-t-white',
-    bg: 'rgba(255, 255, 255, 0.05)',
-    border: 'rgba(255, 255, 255, 0.10)',
+    bg: 'rgba(20, 28, 53, 0.75)',
+    border: 'rgba(255, 255, 255, 0.16)',
     links: [
       { label: 'Low-Income Students',          href: '/for/low-income' },
       { label: 'First-Generation Students',    href: '/for/first-gen' },
@@ -34,8 +34,8 @@ const GROUPS = [
     title: 'LGBTQ+ & Gender',
     description: 'Opportunities supporting LGBTQ+ students and women in STEM fields.',
     topBorder: 'border-t-2 border-t-blue-400',
-    bg: 'rgba(96, 165, 250, 0.07)',
-    border: 'rgba(96, 165, 250, 0.18)',
+    bg: 'rgba(12, 26, 58, 0.75)',
+    border: 'rgba(96, 165, 250, 0.28)',
     links: [
       { label: 'LGBTQ+ Students', href: '/for/lgbtq' },
       { label: 'Women in STEM',   href: '/for/women-stem' },
@@ -45,8 +45,8 @@ const GROUPS = [
     title: "Where You're From",
     description: 'Opportunities shaped by where you grew up and where you live now.',
     topBorder: 'border-t-2 border-t-indigo-400',
-    bg: 'rgba(129, 140, 248, 0.07)',
-    border: 'rgba(129, 140, 248, 0.18)',
+    bg: 'rgba(16, 22, 58, 0.75)',
+    border: 'rgba(129, 140, 248, 0.28)',
     links: [
       { label: 'Rural Students', href: '/for/rural' },
     ],

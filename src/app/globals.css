@@ -41,9 +41,25 @@ body {
     linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
   background-size: 60px 60px;
   background-attachment: fixed;
-  color: #f1f5f9;
+  color: #ffffff;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Force all slate text to white ───────────────────────────────────────── */
+.text-slate-50,
+.text-slate-100,
+.text-slate-200,
+.text-slate-300,
+.text-slate-400,
+.text-slate-500,
+.text-slate-600 {
+  color: #ffffff !important;
+}
+
+/* ── Bold blockquotes (quotes/pull-quotes) ───────────────────────────────── */
+blockquote p {
+  font-weight: 700;
 }
 
 /* Grid intersection dots */
