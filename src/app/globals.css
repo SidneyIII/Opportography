@@ -159,10 +159,10 @@ body::before {
 /* ── Float keyframes (translateY only) ───────────────────────────────────── */
 /* Four variants so adjacent sections bob at different rates / phases         */
 
-@keyframes section-float-a { 0% { transform: translateY(0px); } 100% { transform: translateY(-3px); } }
-@keyframes section-float-b { 0% { transform: translateY(0px); } 100% { transform: translateY(-2px); } }
-@keyframes section-float-c { 0% { transform: translateY(0px); } 100% { transform: translateY(-3px); } }
-@keyframes section-float-d { 0% { transform: translateY(0px); } 100% { transform: translateY(-2px); } }
+@keyframes section-float-a { 0% { transform: translateY(0px); } 100% { transform: translateY(-7px); } }
+@keyframes section-float-b { 0% { transform: translateY(0px); } 100% { transform: translateY(-6px); } }
+@keyframes section-float-c { 0% { transform: translateY(0px); } 100% { transform: translateY(-7px); } }
+@keyframes section-float-d { 0% { transform: translateY(0px); } 100% { transform: translateY(-6px); } }
 
 /*
   Both animations start after the scroll-reveal transition completes (1s delay).
@@ -171,23 +171,23 @@ body::before {
 */
 .scroll-reveal.is-visible.glow-a {
   animation:
-    section-glow-a  5s   1s  ease-in-out infinite alternate,
-    section-float-a 4.2s 1s  ease-in-out infinite alternate;
+    section-glow-a  5s   1s     ease-in-out infinite alternate,
+    section-float-a 3.2s 1s     ease-in-out infinite alternate;
 }
 .scroll-reveal.is-visible.glow-b {
   animation:
-    section-glow-b  5.5s 1s  ease-in-out infinite alternate,
-    section-float-b 5s   -1.2s  ease-in-out infinite alternate;
+    section-glow-b  5.5s 1s     ease-in-out infinite alternate,
+    section-float-b 3.8s -1.2s  ease-in-out infinite alternate;
 }
 .scroll-reveal.is-visible.glow-c {
   animation:
-    section-glow-c  4.8s 1s  ease-in-out infinite alternate,
-    section-float-c 4.6s -0.8s  ease-in-out infinite alternate;
+    section-glow-c  4.8s 1s     ease-in-out infinite alternate,
+    section-float-c 3.5s -0.8s  ease-in-out infinite alternate;
 }
 .scroll-reveal.is-visible.glow-d {
   animation:
-    section-glow-d  6s   1s  ease-in-out infinite alternate,
-    section-float-d 5.4s -2s    ease-in-out infinite alternate;
+    section-glow-d  6s   1s     ease-in-out infinite alternate,
+    section-float-d 4s   -2s    ease-in-out infinite alternate;
 }
 
 /* ── Reduced-motion overrides ─────────────────────────────────────────────── */
@@ -219,20 +219,20 @@ body::before {
 .glow-a:not(.scroll-reveal) {
   animation:
     section-glow-a  5s          ease-in-out infinite alternate,
-    section-float-a 4.2s        ease-in-out infinite alternate;
+    section-float-a 3.2s        ease-in-out infinite alternate;
 }
 .glow-b:not(.scroll-reveal) {
   animation:
     section-glow-b  5.5s        ease-in-out infinite alternate,
-    section-float-b 5s   -1.2s  ease-in-out infinite alternate;
+    section-float-b 3.8s -1.2s  ease-in-out infinite alternate;
 }
 .glow-c:not(.scroll-reveal) {
   animation:
     section-glow-c  4.8s        ease-in-out infinite alternate,
-    section-float-c 4.6s -0.8s  ease-in-out infinite alternate;
+    section-float-c 3.5s -0.8s  ease-in-out infinite alternate;
 }
 .glow-d:not(.scroll-reveal) {
   animation:
     section-glow-d  6s          ease-in-out infinite alternate,
-    section-float-d 5.4s -2s    ease-in-out infinite alternate;
+    section-float-d 4s   -2s    ease-in-out infinite alternate;
 }
