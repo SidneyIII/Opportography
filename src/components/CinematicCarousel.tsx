@@ -145,20 +145,37 @@ export function CinematicCarousel() {
   return (
     <div ref={wrapperRef} style={{ height: totalHeight, overflowX: 'clip' }}>
       <div
-        className="sticky top-0 overflow-hidden"
+        className="sticky top-0 overflow-hidden flex flex-col items-center"
         style={{ height: '100vh' }}
       >
-        {/* Card stage — cards are absolutely centered and shifted by JS */}
-        <div className="absolute inset-0 flex items-start justify-center pt-16 md:pt-24">
+        {/* Top spacer — keeps cards off the very top edge */}
+        <div className="shrink-0" style={{ height: 'clamp(16px, 4vh, 40px)' }} />
+
+        {/*
+          Card container — fixed height calibrated to the card content
+          (p-8/p-12 + catchphrase + rule + title + org + description + footer).
+          Cards are position:absolute within this container and shifted
+          horizontally by JS. The container gives this layout a real height
+          so the scroll hint can follow naturally below it.
+        */}
+        {/*
+          flex justify-center is required: it sets the CSS static position of
+          the absolute cards to the horizontal center of the container, so
+          translateX(0) from JS places the active card centered in the viewport.
+        */}
+        <div
+          className="relative shrink-0 w-full overflow-visible flex justify-center"
+          style={{ height: 'clamp(340px, 50vh, 430px)' }}
+        >
           {CARDS.map((card, i) => (
             <div
               key={i}
               ref={el => { cardEls.current[i] = el }}
               style={{
                 position: 'absolute',
+                top: 0,
                 width: 'min(700px, 84vw)',
                 willChange: 'transform, opacity, filter',
-                // No CSS transition — scroll drives this directly via rAF
               }}
               className="rounded-lg border border-navy-600 bg-navy-800 p-8 md:p-12"
             >
@@ -201,8 +218,16 @@ export function CinematicCarousel() {
           ))}
         </div>
 
+        {/* Gap between card bottom and scroll hint — ~32px */}
+        <div className="shrink-0 h-8" />
+
+        {/* Scroll hint */}
+        <p className="shrink-0 text-[11px] uppercase tracking-widest text-slate-600">
+          scroll to explore
+        </p>
+
         {/* Progress dots */}
-        <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-2">
+        <div className="shrink-0 mt-2 flex gap-2">
           {CARDS.map((_, i) => (
             <span
               key={i}
@@ -218,13 +243,6 @@ export function CinematicCarousel() {
               }}
             />
           ))}
-        </div>
-
-        {/* Scroll hint — fades out after user starts scrolling into section */}
-        <div className="absolute bottom-16 left-0 right-0 z-20 flex justify-center">
-          <p className="text-[11px] uppercase tracking-widest text-slate-600">
-            scroll to explore
-          </p>
         </div>
       </div>
     </div>
