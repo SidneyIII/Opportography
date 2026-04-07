@@ -35,11 +35,11 @@ export default async function HomePage() {
             </span>
           </div>
 
-          <h1 className="font-display mt-1 text-5xl font-bold leading-[1.1] tracking-tight text-slate-50 md:text-7xl lg:text-8xl">
+          <h1 className="font-display mt-1 text-6xl font-bold leading-[1.1] tracking-tight text-slate-50 md:text-8xl lg:text-9xl">
             Opport<span className="text-cyan-400">ography</span>
           </h1>
 
-          <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-slate-400 md:text-xl lg:text-2xl">
+          <p className="mx-auto mt-4 max-w-2xl text-xl leading-relaxed text-slate-400 md:text-2xl lg:text-3xl">
             Opportunity + Cartography. Like a map for your future — every scholarship,
             internship, program, and resource in your city — all in one place.
           </p>
@@ -47,13 +47,13 @@ export default async function HomePage() {
           <div className="mt-7 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
               href="/opportunities"
-              className="rounded-lg bg-cyan-400 px-9 py-4 text-base font-semibold text-navy-950 transition-all hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-navy-950"
+              className="rounded-lg bg-cyan-400 px-10 py-5 text-lg font-semibold text-navy-950 transition-all hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-navy-950"
             >
               Browse All Opportunities
             </Link>
             <Link
               href="/about"
-              className="rounded-lg border border-navy-600 px-9 py-4 text-base font-semibold text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-100"
+              className="rounded-lg border border-navy-600 px-10 py-5 text-lg font-semibold text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-100"
             >
               Learn Our Story
             </Link>
