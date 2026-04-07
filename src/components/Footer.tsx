@@ -4,27 +4,19 @@ export function Footer() {
   return (
     <footer className="border-t border-navy-600 bg-navy-950">
       <div className="mx-auto max-w-6xl px-4 py-8">
-        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
 
-          {/* Left — brand + legal */}
+          {/* Left — brand + copyright */}
           <div>
             <p className="font-display text-sm font-semibold text-cyan-400">Opportography</p>
-            <p className="mt-1 text-xs text-slate-500">
-              Nobody should miss out because they didn&apos;t know.
-            </p>
-            <p className="mt-1 text-xs text-slate-600">&copy; 2026 Opportography. All rights reserved.</p>
-            <div className="mt-2 flex gap-3 text-xs text-slate-600">
-              <Link href="/terms" className="transition-colors hover:text-cyan-400">Terms &amp; Conditions</Link>
-              <span>&middot;</span>
-              <Link href="/privacy" className="transition-colors hover:text-cyan-400">Privacy Policy</Link>
-            </div>
+            <p className="mt-0.5 text-xs text-slate-600">&copy; 2026 Opportography. All rights reserved.</p>
           </div>
 
-          {/* Right — nav links */}
+          {/* Right — legal links */}
           <nav className="flex gap-4 text-xs text-slate-500">
-            <Link href="/opportunities" className="transition-colors hover:text-cyan-400">Browse</Link>
-            <Link href="/about" className="transition-colors hover:text-cyan-400">About</Link>
-            <Link href="/support" className="transition-colors hover:text-cyan-400">Support</Link>
+            <Link href="/terms" className="transition-colors hover:text-cyan-400">Terms &amp; Conditions</Link>
+            <span className="text-slate-700">&middot;</span>
+            <Link href="/privacy" className="transition-colors hover:text-cyan-400">Privacy Policy</Link>
           </nav>
         </div>
 
