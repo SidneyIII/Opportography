@@ -31,8 +31,8 @@ export default async function HomePage() {
           <div className="flex flex-col items-center gap-8 md:flex-row md:items-center md:gap-12 lg:gap-20">
 
             {/* Left — text + button */}
-            <div className="flex-1 text-left">
-              <div className="mb-4 flex items-center gap-3">
+            <div className="flex-1 text-center md:text-left">
+              <div className="mb-4 flex items-center justify-center gap-3 md:justify-start">
                 <MetroSelector metros={metros} />
                 <span className="text-sm text-slate-600">
                   {all.length}+ verified opportunities mapped
@@ -48,7 +48,7 @@ export default async function HomePage() {
                 internship, program, and resource in your city — all in one place.
               </p>
 
-              <div className="mt-7">
+              <div className="mt-7 flex justify-center md:justify-start">
                 <Link
                   href="/opportunities"
                   className="inline-block rounded-lg bg-cyan-400 px-10 py-5 text-lg font-semibold text-navy-950 transition-all hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-navy-950"
