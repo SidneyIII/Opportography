@@ -90,7 +90,7 @@ export default async function HomePage() {
       {/* Browse by Type */}
       <section className="scroll-reveal glow-b mx-4 my-2 rounded-xl border border-navy-600 bg-navy-900/50 px-6 py-12 md:mx-16 lg:mx-24">
         <h2 className="font-display mb-6 text-center text-2xl font-bold text-slate-50">Browse by Type</h2>
-        <div className="flex flex-wrap gap-3 scroll-reveal-stagger">
+        <div className="flex flex-wrap justify-center gap-3 scroll-reveal-stagger">
           {allTypes.map((type) => (
             <Link
               key={type}
