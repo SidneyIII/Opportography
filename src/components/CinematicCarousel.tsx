@@ -102,7 +102,10 @@ export function CinematicCarousel() {
 
       cardEls.current.forEach((el, i) => {
         if (!el) return
-        const off    = i - active
+        // Wrap to shortest distance so cards always appear on both sides
+        let off = i - active
+        if (off >  N / 2) off -= N
+        if (off < -N / 2) off += N
         const absOff = Math.abs(off)
         const tx     = off * STEP
         const sc     = Math.max(0.62, 1 - absOff * 0.19)
