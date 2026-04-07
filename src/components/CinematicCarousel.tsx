@@ -179,8 +179,10 @@ export function CinematicCarousel() {
                 top: 0,
                 width: 'min(700px, 84vw)',
                 willChange: 'transform, opacity, filter',
+                background: i % 2 === 0 ? 'rgba(14, 28, 54, 0.95)' : 'rgba(8, 40, 60, 0.95)',
+                borderColor: i % 2 === 0 ? 'rgba(45, 64, 112, 0.7)' : 'rgba(34, 211, 238, 0.25)',
               }}
-              className="rounded-lg border border-navy-600 bg-navy-800 p-8 md:p-12"
+              className="rounded-lg border p-8 md:p-12"
             >
               {/* Catchphrase */}
               <p className="font-display mb-5 text-xl font-bold italic leading-snug text-slate-50 md:text-2xl lg:text-3xl">
