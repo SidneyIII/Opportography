@@ -2,7 +2,7 @@ import { StatPanel } from '@/components/StatPanel'
 
 export function TheProblem() {
   return (
-    <section className="mx-auto max-w-6xl px-6 pt-4 pb-20 md:px-8 float-only">
+    <section className="mx-auto max-w-6xl px-6 pt-4 pb-10 md:px-8 float-only">
 
       {/* Gladwell quote — full width above both columns */}
       <blockquote className="mb-14 text-center">
