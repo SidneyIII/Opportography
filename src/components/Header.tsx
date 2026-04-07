@@ -10,9 +10,6 @@ import type { User } from '@supabase/supabase-js'
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/opportunities', label: 'Browse' },
-  { href: '/saved', label: 'Saved' },
-  { href: '/about', label: 'About' },
-  { href: '/support', label: 'Support' },
 ]
 
 export function Header() {
@@ -69,21 +66,19 @@ export function Header() {
           </svg>
         </Link>
 
-        {/* Desktop nav — absolutely centered so logo and right side don't affect its position */}
-        <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-6 md:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-sm font-medium text-slate-400 transition-colors hover:text-cyan-400"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Right side: auth + notifications */}
+        {/* Right side: nav + auth + notifications */}
         <div className="flex items-center gap-2">
+          <nav className="mr-2 hidden items-center gap-6 md:flex">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm font-medium text-slate-400 transition-colors hover:text-cyan-400"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
           {user ? (
             <>
               <NotificationBell />

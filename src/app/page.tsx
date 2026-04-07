@@ -106,22 +106,6 @@ export default async function HomePage() {
       {/* Institutional Integrations — no scroll-reveal (owns its own scroll animation) */}
       <InstitutionalIntegrations />
 
-      {/* CTA */}
-      <section className="scroll-reveal float-only px-4 py-16">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-3xl font-bold text-slate-50">You belong here.</h2>
-          <p className="mt-3 text-slate-400">
-            Whether you&apos;re first-gen, low-income, an immigrant, or just looking for your next
-            step — these opportunities are for you.
-          </p>
-          <Link
-            href="/opportunities"
-            className="mt-8 inline-block rounded-lg bg-cyan-400 px-7 py-3 text-sm font-semibold text-navy-950 transition-all hover:bg-cyan-300"
-          >
-            Start Exploring
-          </Link>
-        </div>
-      </section>
     </div>
   )
 }
