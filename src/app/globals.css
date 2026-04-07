@@ -212,24 +212,16 @@ body::before {
   different points in their cycle — they never bob in sync.
 */
 .scroll-reveal.is-visible.glow-a {
-  animation:
-    section-glow-a  5s   1s     ease-in-out infinite alternate,
-    section-float-a 3.2s 1s     ease-in-out infinite alternate;
+  animation: section-float-a 3.2s 1s ease-in-out infinite alternate;
 }
 .scroll-reveal.is-visible.glow-b {
-  animation:
-    section-glow-b  5.5s 1s     ease-in-out infinite alternate,
-    section-float-b 3.8s -1.2s  ease-in-out infinite alternate;
+  animation: section-float-b 3.8s -1.2s ease-in-out infinite alternate;
 }
 .scroll-reveal.is-visible.glow-c {
-  animation:
-    section-glow-c  4.8s 1s     ease-in-out infinite alternate,
-    section-float-c 3.5s -0.8s  ease-in-out infinite alternate;
+  animation: section-float-c 3.5s -0.8s ease-in-out infinite alternate;
 }
 .scroll-reveal.is-visible.glow-d {
-  animation:
-    section-glow-d  6s   1s     ease-in-out infinite alternate,
-    section-float-d 4s   -2s    ease-in-out infinite alternate;
+  animation: section-float-d 4s -2s ease-in-out infinite alternate;
 }
 
 /* ── Reduced-motion overrides ─────────────────────────────────────────────── */
@@ -272,22 +264,14 @@ body::before {
   These animate freely; the parent wrapper's opacity handles initial visibility.
 */
 .glow-a:not(.scroll-reveal) {
-  animation:
-    section-glow-a  5s          ease-in-out infinite alternate,
-    section-float-a 3.2s        ease-in-out infinite alternate;
+  animation: section-float-a 3.2s ease-in-out infinite alternate;
 }
 .glow-b:not(.scroll-reveal) {
-  animation:
-    section-glow-b  5.5s        ease-in-out infinite alternate,
-    section-float-b 3.8s -1.2s  ease-in-out infinite alternate;
+  animation: section-float-b 3.8s -1.2s ease-in-out infinite alternate;
 }
 .glow-c:not(.scroll-reveal) {
-  animation:
-    section-glow-c  4.8s        ease-in-out infinite alternate,
-    section-float-c 3.5s -0.8s  ease-in-out infinite alternate;
+  animation: section-float-c 3.5s -0.8s ease-in-out infinite alternate;
 }
 .glow-d:not(.scroll-reveal) {
-  animation:
-    section-glow-d  6s          ease-in-out infinite alternate,
-    section-float-d 4s   -2s    ease-in-out infinite alternate;
+  animation: section-float-d 4s -2s ease-in-out infinite alternate;
 }
