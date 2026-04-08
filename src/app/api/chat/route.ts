@@ -200,17 +200,12 @@ export async function POST(request: Request) {
       reply = "I'm here to help you find opportunities — let's keep our conversation focused on that."
     }
   } catch (err) {
-    // Log server-side but never expose internals to client
     console.error('[chat] Anthropic API error:', err)
-    // If it looks like a content policy refusal, return the graceful message
-    const msg = err instanceof Error ? err.message : ''
-    if (msg.includes('content') || msg.includes('policy') || msg.includes('safety')) {
-      return NextResponse.json({
-        reply: "I'm here to help you find opportunities — let's keep our conversation focused on that.",
-        remaining,
-      })
-    }
-    return NextResponse.json({ error: 'AI service temporarily unavailable. Please try again.' }, { status: 503 })
+    // Always return the graceful redirect — never expose API internals
+    return NextResponse.json({
+      reply: "I'm here to help you find opportunities — let's keep our conversation focused on that.",
+      remaining,
+    })
   }
 
   // ── Persist both sides of the conversation ────────────────────────────────
