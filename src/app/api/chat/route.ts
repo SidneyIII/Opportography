@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase-server'
-import { preFilter } from '@/lib/matching-engine'
-import type { UserProfile } from '@/lib/matching-engine'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -173,30 +171,37 @@ export async function POST(request: Request) {
   // are always found even if keyword stemming misses them.
   let opportunityContext = ''
   try {
-    const userProfile: UserProfile = profile ?? {}
-
-    // Pass 1: semantic keyword search via preFilter
-    const semanticCandidates = await preFilter(userProfile, undefined, sanitized, 1)
-
-    // Pass 2: direct title/org ilike search for any multi-word phrases in the message
+    // Extract meaningful words from the message for search
     const words = sanitized.split(/\s+/).filter(w => w.length > 3)
-    const searchPhrase = words.slice(0, 6).join(' ') // up to 6 words for ilike
-    const { data: directMatches } = await service
-      .from('opportunities')
-      .select('id, title, organization, description, type, deadline, link')
-      .eq('is_active', true)
-      .or(`title.ilike.%${searchPhrase}%,organization.ilike.%${searchPhrase}%`)
-      .limit(4)
+    const searchPhrase = words.slice(0, 6).join(' ')
+
+    // Run two fast ilike queries in parallel — no AI call, no stem expansion
+    // Query 1: match title or org name directly (catches named opportunities)
+    // Query 2: match description keywords (catches topic-based queries)
+    const [directResult, descResult] = await Promise.all([
+      service
+        .from('opportunities')
+        .select('id, title, organization, description, type, deadline, link')
+        .eq('is_active', true)
+        .or(`title.ilike.%${searchPhrase}%,organization.ilike.%${searchPhrase}%`)
+        .limit(6),
+      service
+        .from('opportunities')
+        .select('id, title, organization, description, type, deadline, link')
+        .eq('is_active', true)
+        .ilike('description', `%${words[0] ?? searchPhrase}%`)
+        .limit(6),
+    ])
 
     // Merge, deduplicate by id, prefer direct matches first
     const seen = new Set<string>()
     const merged: Array<{ id: string; title: string; organization: string; description: string; type: string; deadline?: string | null; link?: string | null }> = []
 
-    for (const d of (directMatches ?? [])) {
+    for (const d of (directResult.data ?? [])) {
       if (!seen.has(d.id)) { seen.add(d.id); merged.push(d) }
     }
-    for (const s of semanticCandidates) {
-      if (!seen.has(s.id)) { seen.add(s.id); merged.push(s) }
+    for (const d of (descResult.data ?? [])) {
+      if (!seen.has(d.id)) { seen.add(d.id); merged.push(d) }
     }
 
     const top = merged.slice(0, 10)
