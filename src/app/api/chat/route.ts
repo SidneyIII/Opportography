@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase-server'
+import { preFilter } from '@/lib/matching-engine'
+import type { UserProfile } from '@/lib/matching-engine'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -159,9 +161,27 @@ export async function POST(request: Request) {
   // ── Fetch user profile for context ───────────────────────────────────────
   const { data: profile } = await service
     .from('user_profiles')
-    .select('first_name, age_range, city, current_status, education_level, interest_categories, goals_freetext')
+    .select('first_name, age_range, city, current_status, education_level, interest_categories, goals_freetext, community_identities, languages')
     .eq('id', user.id)
     .single()
+
+  // ── Fetch relevant opportunities from the database ───────────────────────
+  // Use the existing preFilter engine to pull real verified opportunities
+  // that match the user's current message as a search context.
+  let opportunityContext = ''
+  try {
+    const userProfile: UserProfile = profile ?? {}
+    const candidates = await preFilter(userProfile, undefined, sanitized, 1)
+    const top = candidates.slice(0, 8)
+    if (top.length > 0) {
+      opportunityContext = '\n\n[VERIFIED OPPORTUNITIES FROM DATABASE — only recommend these, do not invent others]\n' +
+        top.map((o, i) =>
+          `${i + 1}. ${o.title} | ${o.organization} | Type: ${o.type}${o.deadline ? ` | Deadline: ${o.deadline}` : ''} | ${o.description?.slice(0, 120)}...${o.link ? ` | Link: ${o.link}` : ''}`
+        ).join('\n')
+    }
+  } catch {
+    // Non-fatal — chat still works without DB context
+  }
 
   // Build profile context to prepend to conversation (not in system prompt)
   const profileContext = profile ? [
@@ -195,8 +215,9 @@ export async function POST(request: Request) {
     messages.push({ role: msg.role as 'user' | 'assistant', content: msg.content })
   }
 
-  // Add current user message — sanitized input only in user role, never system
-  messages.push({ role: 'user', content: sanitized })
+  // Add current user message with DB opportunity context appended
+  // The context is structured data, not user input — safe to include
+  messages.push({ role: 'user', content: sanitized + opportunityContext })
 
   // ── Call Claude ───────────────────────────────────────────────────────────
   let reply: string
