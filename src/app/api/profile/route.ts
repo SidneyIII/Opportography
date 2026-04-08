@@ -68,6 +68,7 @@ export async function PUT(request: Request) {
     'goals_freetext',
     'notification_email', 'notification_sms', 'weekly_digest',
     'deadline_reminders', 'new_match_alerts',
+    'user_type',
   ]
 
   const updates: Record<string, unknown> = {}

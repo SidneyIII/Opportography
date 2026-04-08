@@ -4,6 +4,7 @@ import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/s
 import { OpportunityCard } from '@/components/OpportunityCard'
 import { ProfileCompleteness } from '@/components/ProfileCompleteness'
 import { DashboardMatchSection } from './DashboardMatchSection'
+import { ChatPanel } from '@/components/ChatPanel'
 import type { Opportunity } from '@/lib/types'
 
 export default async function DashboardPage() {
@@ -174,6 +175,14 @@ export default async function DashboardPage() {
           </div>
         </section>
       )}
+
+      {/* AI Counseling Chatbot */}
+      <section className="mb-8">
+        <h2 className="font-display mb-4 text-lg font-bold text-slate-50">
+          AI Counselor
+        </h2>
+        <ChatPanel />
+      </section>
 
       {/* Activity summary */}
       <section className="rounded-xl border border-navy-600 bg-navy-800 p-5">

@@ -52,7 +52,7 @@ export default function SignupPage() {
       body: JSON.stringify({ first_name: firstName }),
     })
 
-    router.push('/onboarding')
+    router.push('/choose-role')
   }
 
   return (
