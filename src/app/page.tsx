@@ -59,7 +59,7 @@ export default async function HomePage() {
             </div>
 
             {/* Right — spinning globe */}
-            <div className="flex shrink-0 justify-center md:w-[420px]">
+            <div className="flex w-full justify-center md:w-[420px] md:shrink-0">
               <GlobeCanvas />
             </div>
 

@@ -98,7 +98,7 @@ export function GlobeCanvas() {
     if (!ctx) return
 
     const dpr = window.devicePixelRatio || 1
-    const SIZE = 420
+    const SIZE = Math.min(420, canvas.parentElement?.clientWidth ?? 420)
     canvas.width = SIZE * dpr
     canvas.height = SIZE * dpr
     canvas.style.width = SIZE + 'px'
@@ -239,7 +239,7 @@ export function GlobeCanvas() {
   return (
     <canvas
       ref={canvasRef}
-      className="w-full max-w-[420px] drop-shadow-[0_0_40px_rgba(34,211,238,0.18)]"
+      className="max-w-full drop-shadow-[0_0_40px_rgba(34,211,238,0.18)]"
     />
   )
 }
