@@ -72,6 +72,21 @@ function detectInjection(input: string): boolean {
     /exec\s*\(/i,
     /verify.*base64/i,
     /deployment\s*config/i,
+    // Code blocks and programming syntax
+    /```/,
+    /function\s+\w+\s*\(/,
+    /def\s+\w+\s*\(/,
+    /import\s+\w+/,
+    /require\s*\(/,
+    /#include\s*</,
+    /\bconst\s+\w+\s*=/,
+    /\blet\s+\w+\s*=/,
+    /\bvar\s+\w+\s*=/,
+    /\bclass\s+\w+/,
+    /<script/i,
+    /SELECT\s+\*?\s+FROM/i,
+    /INSERT\s+INTO/i,
+    /DROP\s+TABLE/i,
   ]
   return INJECTION_PATTERNS.some((p) => p.test(lower))
 }
@@ -124,11 +139,12 @@ export async function POST(request: Request) {
     await service.from('chat_sessions').insert([
       { user_id: user.id, role: 'user', content: sanitized, flagged: true },
     ])
-    return NextResponse.json({
-      reply: "I'm here to help you find opportunities — let's keep our conversation focused on that.",
-      flagged: true,
-      remaining,
-    })
+    // Detect if it looks like code specifically for a friendlier message
+    const isCode = /```|function\s+\w+|def\s+\w+|const\s+\w+|import\s+\w+|class\s+\w+/.test(sanitized)
+    const reply = isCode
+      ? "I'm set up specifically to help with opportunity discovery — scholarships, internships, programs, and pathways. For coding help, a tool like ChatGPT or Stack Overflow would serve you much better. What can I help you find in your community?"
+      : "I'm here to help you find opportunities — let's keep our conversation focused on that."
+    return NextResponse.json({ reply, flagged: true, remaining })
   }
 
   // ── Fetch conversation history (last 20 messages for context) ─────────────
