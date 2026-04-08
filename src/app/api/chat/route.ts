@@ -142,7 +142,7 @@ export async function POST(request: Request) {
     // Detect if it looks like code specifically for a friendlier message
     const isCode = /```|function\s+\w+|def\s+\w+|const\s+\w+|import\s+\w+|class\s+\w+/.test(sanitized)
     const reply = isCode
-      ? "I'm set up specifically to help with opportunity discovery — scholarships, internships, programs, and pathways. For coding help, a tool like ChatGPT or Stack Overflow would serve you much better. What can I help you find in your community?"
+      ? "I'm set up specifically to help with opportunity discovery — scholarships, internships, programs, and pathways. For coding help, a tool like Claude or Stack Overflow would serve you much better. What can I help you find in your community?"
       : "I'm here to help you find opportunities — let's keep our conversation focused on that."
     return NextResponse.json({ reply, flagged: true, remaining })
   }
