@@ -59,6 +59,19 @@ function detectInjection(input: string): boolean {
     /system:/i,
     /\[system\]/i,
     /\<\|im_start\|\>/i,
+    // Base64-encoded shell command detection
+    /base64\s*-d/i,
+    /\|\s*base64/i,
+    /base64.*\|\s*sh/i,
+    /echo\s+["']?[A-Za-z0-9+/]{20,}={0,2}["']?\s*\|/i,
+    // Shell execution patterns
+    /\|\s*sh\b/i,
+    /\|\s*bash\b/i,
+    /curl\s+http/i,
+    /wget\s+http/i,
+    /exec\s*\(/i,
+    /verify.*base64/i,
+    /deployment\s*config/i,
   ]
   return INJECTION_PATTERNS.some((p) => p.test(lower))
 }
@@ -178,8 +191,25 @@ export async function POST(request: Request) {
       system: SYSTEM_PROMPT,
       messages,
     })
-    reply = response.content[0].type === 'text' ? response.content[0].text : ''
-  } catch {
+    // Handle cases where the model declines to respond
+    if (response.stop_reason === 'end_turn' && response.content[0]?.type === 'text') {
+      reply = response.content[0].text
+    } else if (response.content[0]?.type === 'text') {
+      reply = response.content[0].text
+    } else {
+      reply = "I'm here to help you find opportunities — let's keep our conversation focused on that."
+    }
+  } catch (err) {
+    // Log server-side but never expose internals to client
+    console.error('[chat] Anthropic API error:', err)
+    // If it looks like a content policy refusal, return the graceful message
+    const msg = err instanceof Error ? err.message : ''
+    if (msg.includes('content') || msg.includes('policy') || msg.includes('safety')) {
+      return NextResponse.json({
+        reply: "I'm here to help you find opportunities — let's keep our conversation focused on that.",
+        remaining,
+      })
+    }
     return NextResponse.json({ error: 'AI service temporarily unavailable. Please try again.' }, { status: 503 })
   }
 
