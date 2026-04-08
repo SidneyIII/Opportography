@@ -11,6 +11,7 @@ import { TheProblem } from '@/components/TheProblem'
 import { InstitutionalIntegrations } from '@/components/InstitutionalIntegrations'
 import { ScrollRevealInit } from '@/components/ScrollRevealInit'
 import { GlobeCanvas } from '@/components/GlobeCanvas'
+import { AuthErrorToast } from '@/components/AuthErrorToast'
 
 export default async function HomePage() {
   const [all, metros] = await Promise.all([
@@ -21,6 +22,7 @@ export default async function HomePage() {
   return (
     <div>
       <ScrollRevealInit />
+      <AuthErrorToast />
 
       {/* Hero — fade in on load */}
       <section
