@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 
 export default function ResetPasswordPage() {
+  const [ready, setReady] = useState(false)
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -12,6 +13,21 @@ export default function ResetPasswordPage() {
   const [done, setDone] = useState(false)
   const router = useRouter()
   const supabase = createSupabaseBrowserClient()
+
+  // Supabase automatically parses #access_token from the URL fragment on init.
+  // Listen for the PASSWORD_RECOVERY event to confirm the session is active.
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+        setReady(true)
+      }
+    })
+    // Also check if already signed in (e.g. page refresh)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setReady(true)
+    })
+    return () => subscription.unsubscribe()
+  }, [supabase])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -56,6 +72,8 @@ export default function ResetPasswordPage() {
           <div className="rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-4 py-4 text-sm text-cyan-400">
             Password updated. Redirecting you to your dashboard...
           </div>
+        ) : !ready ? (
+          <p className="text-sm text-slate-500">Verifying your reset link...</p>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div>
