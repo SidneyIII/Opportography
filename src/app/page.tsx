@@ -30,27 +30,27 @@ export default async function HomePage() {
         data-reveal="load"
       >
         <div className="mx-auto max-w-6xl">
-          <div className="flex flex-col items-center gap-8 md:flex-row md:items-center md:gap-12 lg:gap-20">
+          <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-center lg:gap-20">
 
             {/* Left — text + button */}
-            <div className="flex-1 text-center md:text-left">
-              <div className="mb-4 flex items-center justify-center gap-3 md:justify-start">
+            <div className="flex-1 text-center lg:text-left">
+              <div className="mb-4 flex items-center justify-center gap-3 lg:justify-start">
                 <MetroSelector metros={metros} />
                 <span className="text-sm text-slate-600">
                   {all.length}+ verified opportunities mapped
                 </span>
               </div>
 
-              <h1 className="font-display mt-1 text-4xl font-bold leading-[1.1] tracking-tight text-slate-50 sm:text-5xl md:text-5xl lg:text-7xl xl:text-8xl">
+              <h1 className="font-display mt-1 text-4xl font-bold leading-[1.1] tracking-tight text-slate-50 sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
                 Opport<span className="text-cyan-400">ography</span>
               </h1>
 
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-400 sm:text-lg md:text-lg lg:text-xl xl:text-2xl">
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-400 sm:text-lg md:text-xl lg:text-xl xl:text-2xl">
                 Opportunity + Cartography. Like a map for your future — every scholarship,
                 internship, program, and resource in your city — all in one place.
               </p>
 
-              <div className="mt-7 flex justify-center md:justify-start">
+              <div className="mt-7 flex justify-center lg:justify-start">
                 <Link
                   href="/opportunities"
                   className="inline-block rounded-lg bg-cyan-400 px-10 py-5 text-lg font-semibold text-navy-950 transition-all hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-navy-950"
@@ -61,7 +61,7 @@ export default async function HomePage() {
             </div>
 
             {/* Right — spinning globe */}
-            <div className="flex w-full justify-center md:w-[300px] md:shrink-0 lg:w-[380px] xl:w-[420px]">
+            <div className="flex w-full justify-center lg:w-[380px] lg:shrink-0 xl:w-[420px]">
               <GlobeCanvas />
             </div>
 
