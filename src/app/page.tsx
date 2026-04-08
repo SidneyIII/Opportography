@@ -41,11 +41,11 @@ export default async function HomePage() {
                 </span>
               </div>
 
-              <h1 className="font-display mt-1 text-4xl font-bold leading-[1.1] tracking-tight text-slate-50 sm:text-5xl md:text-7xl lg:text-8xl">
+              <h1 className="font-display mt-1 text-4xl font-bold leading-[1.1] tracking-tight text-slate-50 sm:text-5xl md:text-5xl lg:text-7xl xl:text-8xl">
                 Opport<span className="text-cyan-400">ography</span>
               </h1>
 
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-400 sm:text-lg md:text-2xl">
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-400 sm:text-lg md:text-lg lg:text-xl xl:text-2xl">
                 Opportunity + Cartography. Like a map for your future — every scholarship,
                 internship, program, and resource in your city — all in one place.
               </p>
@@ -61,7 +61,7 @@ export default async function HomePage() {
             </div>
 
             {/* Right — spinning globe */}
-            <div className="flex w-full justify-center md:w-[420px] md:shrink-0">
+            <div className="flex w-full justify-center md:w-[300px] md:shrink-0 lg:w-[380px] xl:w-[420px]">
               <GlobeCanvas />
             </div>
 
