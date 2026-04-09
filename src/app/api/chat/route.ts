@@ -187,39 +187,51 @@ export async function POST(request: Request) {
     }
     const detectedType = words.map(w => TYPE_KEYWORDS[w]).find(Boolean)
 
-    // Run parallel queries: one per significant word against ALL text fields
-    // including city and location so "council bluffs" matches location-specific records.
-    // Higher limit per query so location words aren't crowded out by type matches.
     const keyWords = words.slice(0, 5)
-    const queries = keyWords.map(word =>
+
+    // Detect location words (proper nouns, city names) — run these first
+    // so location-specific results are prioritized in the merge
+    const KNOWN_CITIES = ['omaha', 'bluffs', 'council', 'akron', 'iowa', 'nebraska']
+    const locationWords = keyWords.filter(w => KNOWN_CITIES.includes(w.toLowerCase()))
+    const topicWords = keyWords.filter(w => !KNOWN_CITIES.includes(w.toLowerCase()))
+
+    const makeQuery = (word: string) =>
       service
         .from('opportunities')
         .select('id, title, organization, description, type, deadline, link, city, location')
         .eq('is_active', true)
         .or(`title.ilike.%${word}%,organization.ilike.%${word}%,description.ilike.%${word}%,city.ilike.%${word}%,location.ilike.%${word}%`)
-        .limit(8)
-    )
+        .limit(10)
 
-    // Also run a type-based query if detected
-    if (detectedType) {
-      queries.push(
-        service
+    // Run all queries in parallel but merge location results FIRST
+    const locationQueries = locationWords.map(makeQuery)
+    const topicQueries = topicWords.map(makeQuery)
+
+    // Type-based query runs alongside
+    const typeQuery = detectedType
+      ? [service
           .from('opportunities')
           .select('id, title, organization, description, type, deadline, link, city, location')
           .eq('is_active', true)
           .eq('type', detectedType)
-          .limit(8)
-      )
-    }
+          .limit(8)]
+      : []
 
-    const results = await Promise.all(queries)
+    const [locationResults, topicResults, typeResults] = await Promise.all([
+      Promise.all(locationQueries),
+      Promise.all(topicQueries),
+      Promise.all(typeQuery),
+    ])
 
-    // Merge and deduplicate, preserving order (first match wins)
+    // Merge: location-specific first, then topic, then type
     const seen = new Set<string>()
     const merged: Array<{ id: string; title: string; organization: string; description: string; type: string; deadline?: string | null; link?: string | null }> = []
-    for (const result of results) {
-      for (const d of (result.data ?? [])) {
-        if (!seen.has(d.id)) { seen.add(d.id); merged.push(d) }
+
+    for (const results of [locationResults, topicResults, typeResults]) {
+      for (const result of results) {
+        for (const d of (result.data ?? [])) {
+          if (!seen.has(d.id)) { seen.add(d.id); merged.push(d) }
+        }
       }
     }
 
