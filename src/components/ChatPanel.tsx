@@ -103,6 +103,36 @@ export function ChatPanel() {
     }
   }
 
+  function renderLine(line: string): React.ReactNode {
+    // Match markdown links: [text](url)
+    const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g
+    const parts: React.ReactNode[] = []
+    let last = 0
+    let match
+
+    // Strip leading markdown heading hashes
+    const cleaned = line.replace(/^#{1,6}\s+/, '')
+
+    // Bold whole line
+    if (cleaned.startsWith('**') && cleaned.endsWith('**') && cleaned.length > 4) {
+      return <strong>{cleaned.slice(2, -2)}</strong>
+    }
+
+    linkRegex.lastIndex = 0
+    while ((match = linkRegex.exec(cleaned)) !== null) {
+      if (match.index > last) parts.push(cleaned.slice(last, match.index))
+      parts.push(
+        <a key={match.index} href={match[2]} target="_blank" rel="noopener noreferrer"
+          className="text-cyan-400 underline underline-offset-2 hover:text-cyan-300 transition-colors">
+          {match[1]}
+        </a>
+      )
+      last = match.index + match[0].length
+    }
+    if (last < cleaned.length) parts.push(cleaned.slice(last))
+    return parts.length > 0 ? parts : cleaned
+  }
+
   async function handleClear() {
     await fetch('/api/chat', { method: 'DELETE' })
     setMessages([GREETING])
@@ -182,9 +212,7 @@ export function ChatPanel() {
               {/* Render line breaks and basic markdown */}
               {msg.content.split('\n').map((line, i) => (
                 <p key={i} className={line === '' ? 'mt-2' : ''}>
-                  {line.startsWith('**') && line.endsWith('**')
-                    ? <strong>{line.slice(2, -2)}</strong>
-                    : line}
+                  {renderLine(line)}
                 </p>
               ))}
             </div>
