@@ -303,7 +303,7 @@ export async function POST(request: Request) {
     opportunityContext = '\n\n[VERIFIED OPPORTUNITIES FROM THE OPPORTOGRAPHY DATABASE]\n' +
       '[CRITICAL: Only recommend opportunities from this list. Never invent or suggest opportunities not listed here. Always include the Opportography link so the student can view it directly.]\n' +
       top.map((o, i) =>
-        `${i + 1}. "${o.title}" by ${o.organization} | Type: ${o.type}${o.deadline ? ` | Deadline: ${o.deadline}` : ''}\n   ${o.description?.slice(0, 150)}...\n   Opportography link: ${appUrl}/opportunities/${o.id}`
+        `${i + 1}. "${o.title}" by ${o.organization} | Type: ${o.type}${o.deadline ? ` | Deadline: ${o.deadline}` : ''}\n   ${o.description?.slice(0, 220)}...\n   Opportography link: ${appUrl}/opportunities/${o.id}`
       ).join('\n\n')
   } catch {
     // Non-fatal — chat still works without DB context
