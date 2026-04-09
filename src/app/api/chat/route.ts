@@ -199,9 +199,10 @@ export async function POST(request: Request) {
     const voyageData = await voyageRes.json()
     const queryEmbedding = voyageData.data[0].embedding
 
-    // Vector similarity search via Supabase RPC
-    const { data: matches, error: matchError } = await service.rpc('match_opportunities', {
+    // Hybrid search: vector similarity + full-text (BM25) via RRF
+    const { data: matches, error: matchError } = await service.rpc('match_opportunities_hybrid', {
       query_embedding: queryEmbedding,
+      query_text: sanitized,
       match_count: 20,
       filter_active: true,
     })
@@ -210,7 +211,7 @@ export async function POST(request: Request) {
 
     const top = (matches ?? []) as Array<{
       id: string; title: string; organization: string; description: string;
-      type: string; deadline?: string | null; link?: string | null; similarity: number;
+      type: string; deadline?: string | null; link?: string | null; rrf_score: number;
     }>
 
     if (top.length > 0) {
