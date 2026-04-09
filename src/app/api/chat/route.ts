@@ -187,16 +187,17 @@ export async function POST(request: Request) {
     }
     const detectedType = words.map(w => TYPE_KEYWORDS[w]).find(Boolean)
 
-    // Run parallel queries: one per significant word against title+org+description
-    // Plus an optional type filter query
-    const keyWords = words.slice(0, 4) // max 4 individual word searches
+    // Run parallel queries: one per significant word against ALL text fields
+    // including city and location so "council bluffs" matches location-specific records.
+    // Higher limit per query so location words aren't crowded out by type matches.
+    const keyWords = words.slice(0, 5)
     const queries = keyWords.map(word =>
       service
         .from('opportunities')
-        .select('id, title, organization, description, type, deadline, link')
+        .select('id, title, organization, description, type, deadline, link, city, location')
         .eq('is_active', true)
-        .or(`title.ilike.%${word}%,organization.ilike.%${word}%,description.ilike.%${word}%`)
-        .limit(4)
+        .or(`title.ilike.%${word}%,organization.ilike.%${word}%,description.ilike.%${word}%,city.ilike.%${word}%,location.ilike.%${word}%`)
+        .limit(8)
     )
 
     // Also run a type-based query if detected
@@ -204,10 +205,10 @@ export async function POST(request: Request) {
       queries.push(
         service
           .from('opportunities')
-          .select('id, title, organization, description, type, deadline, link')
+          .select('id, title, organization, description, type, deadline, link, city, location')
           .eq('is_active', true)
           .eq('type', detectedType)
-          .limit(6)
+          .limit(8)
       )
     }
 
@@ -243,17 +244,17 @@ export async function POST(request: Request) {
         ? interestTypes.map((t: string) =>
             service
               .from('opportunities')
-              .select('id, title, organization, description, type, deadline, link')
+              .select('id, title, organization, description, type, deadline, link, city, location')
               .eq('is_active', true)
               .eq('type', t)
-              .limit(4)
+              .limit(6)
           )
         : [
             service
               .from('opportunities')
-              .select('id, title, organization, description, type, deadline, link')
+              .select('id, title, organization, description, type, deadline, link, city, location')
               .eq('is_active', true)
-              .limit(8)
+              .limit(10)
           ]
 
       const fallbackResults = await Promise.all(fallbackQueries)
@@ -264,7 +265,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const top = merged.slice(0, 10)
+    const top = merged.slice(0, 12)
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://opportography.vercel.app'
     // Always inject DB context — even if keyword search found nothing, fallback ensures data
     opportunityContext = '\n\n[VERIFIED OPPORTUNITIES FROM THE OPPORTOGRAPHY DATABASE]\n' +
