@@ -167,145 +167,60 @@ export async function POST(request: Request) {
     .eq('id', user.id)
     .single()
 
-  // ── Fetch relevant opportunities from the database ───────────────────────
-  // Two-pass search: semantic preFilter + direct title/org name match.
-  // This ensures named opportunities (e.g. "Council Bluffs Young Professionals")
-  // are always found even if keyword stemming misses them.
+  // ── Fetch relevant opportunities via vector similarity search ───────────────
   let opportunityContext = ''
   try {
-    // Extract individual meaningful words (3+ chars) for search
-    const stopWords = new Set(['the', 'and', 'for', 'any', 'are', 'that', 'this', 'with', 'show', 'can', 'you', 'about', 'some', 'what', 'have', 'want', 'looking', 'find', 'tell', 'know', 'help', 'need', 'like', 'get', 'there'])
-    const words = sanitized.split(/\s+/)
-      .map(w => w.replace(/[^a-zA-Z0-9]/g, '').toLowerCase())
-      .filter(w => w.length > 3 && !stopWords.has(w))
-
-    // Detect opportunity type from message
-    const TYPE_KEYWORDS: Record<string, string> = {
-      network: 'networking', networking: 'networking', scholarship: 'scholarship',
-      intern: 'internship', internship: 'internship', mentor: 'mentorship',
-      mentorship: 'mentorship', job: 'job', jobs: 'job', workshop: 'workshop',
-      trade: 'job', apprentice: 'job', summer: 'summer_program',
-      community: 'community', volunteer: 'community', civic: 'community',
-    }
-    const detectedType = words.map(w => TYPE_KEYWORDS[w]).find(Boolean)
-
-    const keyWords = words.slice(0, 5)
-
-    // Detect multi-word city phrases in the original message for full-phrase search
-    const CITY_PHRASES = ['council bluffs', 'council bluff', 'omaha', 'akron']
-    const msgLower = sanitized.toLowerCase()
-    const detectedCity = CITY_PHRASES.find(c => msgLower.includes(c))
-
-    const makeQuery = (word: string) =>
-      service
-        .from('opportunities')
-        .select('id, title, organization, description, type, deadline, link, city, location')
-        .eq('is_active', true)
-        .or(`title.ilike.%${word}%,organization.ilike.%${word}%,description.ilike.%${word}%,city.ilike.%${word}%,location.ilike.%${word}%`)
-        .limit(10)
-
-    // Build query set — city phrase query runs first and is merged first
-    const cityQuery = detectedCity
-      ? [service
-          .from('opportunities')
-          .select('id, title, organization, description, type, deadline, link, city, location')
-          .eq('is_active', true)
-          .or(`city.ilike.%${detectedCity}%,location.ilike.%${detectedCity}%,title.ilike.%${detectedCity}%,organization.ilike.%${detectedCity}%,description.ilike.%${detectedCity}%`)
-          .limit(12)]
-      : []
-
-    // City + type intersection: if both detected, run a tighter combined query
-    const cityTypeQuery = detectedCity && detectedType
-      ? [service
-          .from('opportunities')
-          .select('id, title, organization, description, type, deadline, link, city, location')
-          .eq('is_active', true)
-          .eq('type', detectedType)
-          .or(`city.ilike.%${detectedCity}%,location.ilike.%${detectedCity}%,title.ilike.%${detectedCity}%,organization.ilike.%${detectedCity}%,description.ilike.%${detectedCity}%`)
-          .limit(8)]
-      : []
-
-    const topicQueries = keyWords.map(makeQuery)
-
-    const typeQuery = detectedType
-      ? [service
-          .from('opportunities')
-          .select('id, title, organization, description, type, deadline, link, city, location')
-          .eq('is_active', true)
-          .eq('type', detectedType)
-          .limit(8)]
-      : []
-
-    const [cityTypeResults, cityResults, topicResults, typeResults] = await Promise.all([
-      Promise.all(cityTypeQuery),
-      Promise.all(cityQuery),
-      Promise.all(topicQueries),
-      Promise.all(typeQuery),
-    ])
-
-    // Merge: city-specific first, then topic keywords, then type
-    const seen = new Set<string>()
-    const merged: Array<{ id: string; title: string; organization: string; description: string; type: string; deadline?: string | null; link?: string | null }> = []
-
-    for (const results of [cityTypeResults, cityResults, topicResults, typeResults]) {
-      for (const result of results) {
-        for (const d of (result.data ?? [])) {
-          if (!seen.has(d.id)) { seen.add(d.id); merged.push(d) }
-        }
-      }
-    }
-
-    // Fallback: if fewer than 4 results, backfill with profile-interest-based
-    // and type-based opportunities so Claude always has verified data to cite.
-    if (merged.length < 4) {
-      const interestTypes = (profile?.interest_categories ?? [])
-        .map((cat: string) => {
-          const map: Record<string, string> = {
-            'jobs_employment': 'job', 'education_training': 'workshop',
-            'scholarships_financial_aid': 'scholarship', 'networking_professional_growth': 'networking',
-            'starting_a_business': 'networking', 'technology_ai_skills': 'workshop',
-            'civic_engagement': 'community', 'community_cultural_programs': 'community',
-            'volunteering': 'community', 'health_wellness': 'free_resource',
-          }
-          return map[cat]
-        })
-        .filter(Boolean)
-        .slice(0, 2)
-
-      const fallbackQueries = interestTypes.length > 0
-        ? interestTypes.map((t: string) =>
-            service
-              .from('opportunities')
-              .select('id, title, organization, description, type, deadline, link, city, location')
-              .eq('is_active', true)
-              .eq('type', t)
-              .limit(6)
-          )
-        : [
-            service
-              .from('opportunities')
-              .select('id, title, organization, description, type, deadline, link, city, location')
-              .eq('is_active', true)
-              .limit(10)
-          ]
-
-      const fallbackResults = await Promise.all(fallbackQueries)
-      for (const result of fallbackResults) {
-        for (const d of (result.data ?? [])) {
-          if (!seen.has(d.id)) { seen.add(d.id); merged.push(d) }
-        }
-      }
-    }
-
-    const top = merged.slice(0, 12)
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://opportography.vercel.app'
-    // Always inject DB context — even if keyword search found nothing, fallback ensures data
-    opportunityContext = '\n\n[VERIFIED OPPORTUNITIES FROM THE OPPORTOGRAPHY DATABASE]\n' +
-      '[CRITICAL: Only recommend opportunities from this list. Never invent or suggest opportunities not listed here. Always include the Opportography link so the student can view it directly.]\n' +
-      top.map((o, i) =>
-        `${i + 1}. "${o.title}" by ${o.organization} | Type: ${o.type}${o.deadline ? ` | Deadline: ${o.deadline}` : ''}\n   ${o.description?.slice(0, 220)}...\n   Opportography link: ${appUrl}/opportunities/${o.id}`
-      ).join('\n\n')
-  } catch {
+
+    // Build a rich query string: user message + profile context for better semantic matching
+    const queryText = [
+      sanitized,
+      profile?.city ? `location: ${profile.city}` : null,
+      profile?.interest_categories?.length ? `interests: ${profile.interest_categories.join(', ')}` : null,
+      profile?.goals_freetext ? `goals: ${profile.goals_freetext}` : null,
+    ].filter(Boolean).join(' | ')
+
+    // Embed the query with Voyage AI
+    const voyageRes = await fetch('https://api.voyageai.com/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.VOYAGE_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'voyage-3-lite',
+        input: [queryText],
+        input_type: 'query',
+      }),
+    })
+
+    if (!voyageRes.ok) throw new Error(`Voyage API error: ${voyageRes.status}`)
+    const voyageData = await voyageRes.json()
+    const queryEmbedding = voyageData.data[0].embedding
+
+    // Vector similarity search via Supabase RPC
+    const { data: matches, error: matchError } = await service.rpc('match_opportunities', {
+      query_embedding: queryEmbedding,
+      match_count: 12,
+      filter_active: true,
+    })
+
+    if (matchError) throw new Error(matchError.message)
+
+    const top = (matches ?? []) as Array<{
+      id: string; title: string; organization: string; description: string;
+      type: string; deadline?: string | null; link?: string | null; similarity: number;
+    }>
+
+    if (top.length > 0) {
+      opportunityContext = '\n\n[VERIFIED OPPORTUNITIES FROM THE OPPORTOGRAPHY DATABASE]\n' +
+        '[CRITICAL: Only recommend opportunities from this list. Never invent or suggest opportunities not listed here. Always include the Opportography link so the student can view it directly.]\n' +
+        top.map((o, i) =>
+          `${i + 1}. "${o.title}" by ${o.organization} | Type: ${o.type}${o.deadline ? ` | Deadline: ${o.deadline}` : ''}\n   ${o.description?.slice(0, 220)}...\n   Opportography link: ${appUrl}/opportunities/${o.id}`
+        ).join('\n\n')
+    }
+  } catch (err) {
+    console.error('[chat] Vector search error:', err)
     // Non-fatal — chat still works without DB context
   }
 
