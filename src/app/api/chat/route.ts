@@ -222,15 +222,56 @@ export async function POST(request: Request) {
       }
     }
 
-    const top = merged.slice(0, 10)
-    if (top.length > 0) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://opportography.vercel.app'
-      opportunityContext = '\n\n[VERIFIED OPPORTUNITIES FROM THE OPPORTOGRAPHY DATABASE]\n' +
-        '[CRITICAL: Only recommend opportunities from this list. Never invent or suggest opportunities not listed here. Always include the Opportography link so the student can view it directly.]\n' +
-        top.map((o, i) =>
-          `${i + 1}. "${o.title}" by ${o.organization} | Type: ${o.type}${o.deadline ? ` | Deadline: ${o.deadline}` : ''}\n   ${o.description?.slice(0, 150)}...\n   Opportography link: ${appUrl}/opportunities/${o.id}`
-        ).join('\n\n')
+    // Fallback: if fewer than 4 results, backfill with profile-interest-based
+    // and type-based opportunities so Claude always has verified data to cite.
+    if (merged.length < 4) {
+      const interestTypes = (profile?.interest_categories ?? [])
+        .map((cat: string) => {
+          const map: Record<string, string> = {
+            'jobs_employment': 'job', 'education_training': 'workshop',
+            'scholarships_financial_aid': 'scholarship', 'networking_professional_growth': 'networking',
+            'starting_a_business': 'networking', 'technology_ai_skills': 'workshop',
+            'civic_engagement': 'community', 'community_cultural_programs': 'community',
+            'volunteering': 'community', 'health_wellness': 'free_resource',
+          }
+          return map[cat]
+        })
+        .filter(Boolean)
+        .slice(0, 2)
+
+      const fallbackQueries = interestTypes.length > 0
+        ? interestTypes.map((t: string) =>
+            service
+              .from('opportunities')
+              .select('id, title, organization, description, type, deadline, link')
+              .eq('is_active', true)
+              .eq('type', t)
+              .limit(4)
+          )
+        : [
+            service
+              .from('opportunities')
+              .select('id, title, organization, description, type, deadline, link')
+              .eq('is_active', true)
+              .limit(8)
+          ]
+
+      const fallbackResults = await Promise.all(fallbackQueries)
+      for (const result of fallbackResults) {
+        for (const d of (result.data ?? [])) {
+          if (!seen.has(d.id)) { seen.add(d.id); merged.push(d) }
+        }
+      }
     }
+
+    const top = merged.slice(0, 10)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://opportography.vercel.app'
+    // Always inject DB context — even if keyword search found nothing, fallback ensures data
+    opportunityContext = '\n\n[VERIFIED OPPORTUNITIES FROM THE OPPORTOGRAPHY DATABASE]\n' +
+      '[CRITICAL: Only recommend opportunities from this list. Never invent or suggest opportunities not listed here. Always include the Opportography link so the student can view it directly.]\n' +
+      top.map((o, i) =>
+        `${i + 1}. "${o.title}" by ${o.organization} | Type: ${o.type}${o.deadline ? ` | Deadline: ${o.deadline}` : ''}\n   ${o.description?.slice(0, 150)}...\n   Opportography link: ${appUrl}/opportunities/${o.id}`
+      ).join('\n\n')
   } catch {
     // Non-fatal — chat still works without DB context
   }
