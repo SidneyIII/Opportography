@@ -176,16 +176,33 @@ export async function POST(request: Request) {
     .eq('id', user.id)
     .single()
 
-  // ── Fetch relevant opportunities via vector similarity search ───────────────
+  // ── Fetch relevant opportunities via hybrid search ───────────────────────────
   let opportunityContext = ''
   try {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://opportography.vercel.app'
 
-    // Query text: user message is primary signal, profile adds light context
-    // Repeat the user message to weight it more heavily than profile noise
+    // ── Step 1: Query expansion via Claude Haiku ────────────────────────────
+    // Translates vague/slang student language into concrete search terms
+    // so "vibecoding" → "coding developer meetup JavaScript Python AI tools"
+    let expandedQuery = sanitized
+    try {
+      const expansionRes = await anthropic.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 80,
+        messages: [{
+          role: 'user',
+          content: `A student wrote: "${sanitized}"\n\nList 8-12 concrete search keywords capturing what they want — synonyms, related fields, activity types, relevant organizations. Output only a comma-separated list, nothing else.`,
+        }],
+      })
+      const keywords = expansionRes.content[0]?.type === 'text' ? expansionRes.content[0].text.trim() : ''
+      if (keywords) expandedQuery = `${sanitized} ${keywords}`
+    } catch {
+      // Non-fatal — fall back to raw message
+    }
+
+    // Query text: expanded query + light profile context
     const queryText = [
-      sanitized,
-      sanitized,
+      expandedQuery,
       profile?.city ? `location: ${profile.city}` : null,
       profile?.interest_categories?.length ? `interests: ${profile.interest_categories.join(', ')}` : null,
     ].filter(Boolean).join(' | ')
@@ -211,7 +228,7 @@ export async function POST(request: Request) {
     // Hybrid search: vector similarity + full-text (BM25) via RRF
     const { data: matches, error: matchError } = await service.rpc('match_opportunities_hybrid', {
       query_embedding: queryEmbedding,
-      query_text: sanitized,
+      query_text: expandedQuery,
       match_count: 20,
       filter_active: true,
     })
