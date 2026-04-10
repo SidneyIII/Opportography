@@ -157,7 +157,7 @@ export function ChatPanel() {
               <circle cx="12" cy="9" r="2.5" />
             </svg>
           </div>
-          <span className="text-sm font-semibold text-white">Opportography AI</span>
+          <span className="text-sm font-semibold text-white">AI Guidance</span>
           {/* Security badge */}
           <div className="flex items-center gap-1 rounded-full border border-cyan-400/20 bg-cyan-400/5 px-2 py-0.5" title="This assistant only discusses opportunities and is protected against misuse.">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3 w-3 text-cyan-400">

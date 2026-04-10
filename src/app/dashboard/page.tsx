@@ -179,7 +179,7 @@ export default async function DashboardPage() {
       {/* AI Counseling Chatbot */}
       <section className="mb-8">
         <h2 className="font-display mb-4 text-lg font-bold text-slate-50">
-          AI Counselor
+          AI Guidance
         </h2>
         <ChatPanel />
       </section>
