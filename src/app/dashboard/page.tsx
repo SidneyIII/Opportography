@@ -93,12 +93,20 @@ export default async function DashboardPage() {
               : 'Run your first match to get personalized results'}
           </p>
         </div>
-        <Link
-          href="/onboarding"
-          className="text-sm text-slate-500 transition-colors hover:text-slate-300"
-        >
-          Edit Profile
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/apply"
+            className="text-sm text-slate-500 transition-colors hover:text-cyan-400"
+          >
+            Application Center
+          </Link>
+          <Link
+            href="/onboarding"
+            className="text-sm text-slate-500 transition-colors hover:text-slate-300"
+          >
+            Edit Profile
+          </Link>
+        </div>
       </div>
 
       {/* Profile completeness nudge */}
