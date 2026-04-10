@@ -18,6 +18,8 @@ export async function GET() {
       match_score,
       match_reasoning,
       starred,
+      status,
+      custom_deadline,
       opportunities (
         id, title, organization, type, deadline, link, location,
         identity_tags, category_tags, is_active
@@ -92,16 +94,23 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json()
-  const { starred } = body
+  const { starred, status, custom_deadline } = body
 
-  if (typeof starred !== 'boolean') {
-    return NextResponse.json({ error: 'starred must be a boolean.' }, { status: 400 })
+  const VALID_STATUSES = ['saved', 'in_progress', 'submitted', 'accepted', 'declined', 'waitlisted']
+  const updates: Record<string, unknown> = {}
+
+  if (typeof starred === 'boolean') updates.starred = starred
+  if (typeof status === 'string' && VALID_STATUSES.includes(status)) updates.status = status
+  if (custom_deadline !== undefined) updates.custom_deadline = custom_deadline ?? null
+
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: 'No valid fields to update.' }, { status: 400 })
   }
 
   const service = createSupabaseServiceClient()
   const { error } = await service
     .from('saved_opportunities')
-    .update({ starred })
+    .update(updates)
     .eq('user_id', user.id)
     .eq('opportunity_id', opportunity_id)
 

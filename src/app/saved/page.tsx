@@ -9,6 +9,8 @@ import { OpportunityCard } from '@/components/OpportunityCard'
 import { TypeBadge } from '@/components/TypeBadge'
 
 type SortMode = 'date' | 'score' | 'starred'
+type ViewMode = 'list' | 'tracker'
+type AppStatus = 'saved' | 'in_progress' | 'submitted' | 'accepted' | 'declined' | 'waitlisted'
 
 interface SavedItem {
   id: string
@@ -17,6 +19,8 @@ interface SavedItem {
   match_score: number | null
   match_reasoning: string | null
   starred: boolean
+  status: AppStatus
+  custom_deadline: string | null
   opportunities: {
     id: string
     title: string
@@ -27,6 +31,22 @@ interface SavedItem {
     is_active: boolean
   } | null
 }
+
+const STATUS_COLUMNS: { key: AppStatus[]; label: string; color: string }[] = [
+  { key: ['saved'], label: 'Saved', color: 'text-slate-400' },
+  { key: ['in_progress'], label: 'In Progress', color: 'text-cyan-400' },
+  { key: ['submitted', 'accepted', 'declined', 'waitlisted'], label: 'Done', color: 'text-emerald-400' },
+]
+
+const STATUS_OPTIONS: { value: AppStatus; label: string }[] = [
+  { value: 'saved', label: 'Saved' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'submitted', label: 'Submitted' },
+  { value: 'accepted', label: 'Accepted' },
+  { value: 'declined', label: 'Declined' },
+  { value: 'waitlisted', label: 'Waitlisted' },
+]
+
 
 function StarIcon({ filled }: { filled: boolean }) {
   return filled ? (
@@ -54,6 +74,74 @@ function ScoreBadge({ score }: { score: number }) {
   )
 }
 
+function DeadlineBadge({ deadline, customDeadline }: { deadline: string | null; customDeadline: string | null }) {
+  const raw = customDeadline ?? deadline
+  if (!raw) return null
+  const d = new Date(raw)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const daysUntil = Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  if (daysUntil < 0) return <span className="text-xs text-slate-600">Passed</span>
+  const cls = daysUntil <= 7
+    ? 'bg-rose-400/10 text-rose-400 border-rose-400/25'
+    : daysUntil <= 14
+      ? 'bg-amber-400/10 text-amber-400 border-amber-400/25'
+      : 'bg-slate-400/10 text-slate-400 border-slate-400/20'
+  const label = daysUntil === 0 ? 'Today!' : daysUntil === 1 ? '1 day left' : `${daysUntil} days left`
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${cls}`}>
+      {label}
+    </span>
+  )
+}
+
+function DeadlineUrgencyBanner({ items }: { items: SavedItem[] }) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const in14 = new Date(today)
+  in14.setDate(today.getDate() + 14)
+
+  const urgent = items
+    .filter((item) => {
+      const raw = item.custom_deadline ?? item.opportunities?.deadline ?? null
+      if (!raw) return false
+      const d = new Date(raw)
+      return d >= today && d <= in14 && !['submitted', 'accepted', 'declined'].includes(item.status)
+    })
+    .sort((a, b) => {
+      const da = new Date(a.custom_deadline ?? a.opportunities?.deadline ?? '').getTime()
+      const db = new Date(b.custom_deadline ?? b.opportunities?.deadline ?? '').getTime()
+      return da - db
+    })
+
+  if (urgent.length === 0) return null
+
+  return (
+    <div className="mb-6 rounded-xl border border-amber-400/30 bg-amber-400/5 px-4 py-3">
+      <div className="flex items-start gap-3">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 h-4 w-4 shrink-0 text-amber-400">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+        <div className="flex-1 space-y-1">
+          {urgent.map((item) => {
+            const opp = item.opportunities
+            const raw = item.custom_deadline ?? opp?.deadline ?? ''
+            const daysUntil = Math.ceil((new Date(raw).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+            const label = daysUntil === 0 ? 'closes today' : daysUntil === 1 ? 'closes tomorrow' : `closes in ${daysUntil} days`
+            return (
+              <p key={item.id} className="text-sm text-amber-300">
+                <span className="font-semibold">{opp?.title ?? 'Opportunity'}</span>
+                {' '}
+                <span className="text-amber-400/70">{label}</span>
+              </p>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function SavedCard({
   item,
   onUnsave,
@@ -62,24 +150,21 @@ function SavedCard({
   item: SavedItem
   onUnsave: (opportunityId: string) => void
   onToggleStar: (opportunityId: string, starred: boolean) => void
+  onStatusChange: (opportunityId: string, status: AppStatus) => void
 }) {
   const opp = item.opportunities
   if (!opp) return null
 
   return (
     <div className="group relative rounded-xl border border-navy-600 bg-navy-800 p-5 transition-all hover:border-cyan-400/40">
-      {/* Header */}
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           {item.match_score != null && <ScoreBadge score={Math.round(item.match_score)} />}
           <TypeBadge type={opp.type as Parameters<typeof TypeBadge>[0]['type']} />
         </div>
-        {item.starred && (
-          <span className="text-xs font-medium text-amber-400">Starred</span>
-        )}
+        <DeadlineBadge deadline={opp.deadline} customDeadline={item.custom_deadline} />
       </div>
 
-      {/* Title */}
       <Link href={`/opportunities/${opp.id}`}>
         <h3 className="font-display text-base font-semibold text-slate-100 transition-colors group-hover:text-cyan-400">
           {opp.title}
@@ -87,47 +172,34 @@ function SavedCard({
       </Link>
       <p className="mt-0.5 text-sm text-slate-500">{opp.organization}</p>
 
-      {/* Match reasoning */}
       {item.match_reasoning && (
         <p className="mt-3 line-clamp-2 text-sm italic leading-relaxed text-slate-400">
           &ldquo;{item.match_reasoning}&rdquo;
         </p>
       )}
 
-      {/* Meta */}
       <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500">
         <span>{opp.location}</span>
-        {opp.deadline && (
-          <span>Due {new Date(opp.deadline).toLocaleDateString()}</span>
+        {(opp.deadline || item.custom_deadline) && (
+          <span>Due {new Date(item.custom_deadline ?? opp.deadline!).toLocaleDateString()}</span>
         )}
       </div>
 
-      {/* Footer actions */}
       <div className="mt-4 flex items-center justify-between border-t border-navy-600 pt-3">
         <button
           onClick={() => onToggleStar(opp.id, !item.starred)}
           className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
-            item.starred
-              ? 'text-amber-400 hover:text-amber-300'
-              : 'text-slate-500 hover:text-slate-300'
+            item.starred ? 'text-amber-400 hover:text-amber-300' : 'text-slate-500 hover:text-slate-300'
           }`}
-          title={item.starred ? 'Unstar' : 'Star this opportunity'}
         >
           <StarIcon filled={item.starred} />
           {item.starred ? 'Starred' : 'Star'}
         </button>
         <div className="flex items-center gap-3">
-          <Link
-            href={`/opportunities/${opp.id}`}
-            className="text-xs font-medium text-cyan-400 hover:text-cyan-300"
-          >
-            View Details &rarr;
+          <Link href={`/opportunities/${opp.id}`} className="text-xs font-medium text-cyan-400 hover:text-cyan-300">
+            View &rarr;
           </Link>
-          <button
-            onClick={() => onUnsave(opp.id)}
-            className="text-xs text-slate-600 transition-colors hover:text-rose-400"
-            title="Remove from saved"
-          >
+          <button onClick={() => onUnsave(opp.id)} className="text-xs text-slate-600 transition-colors hover:text-rose-400">
             Remove
           </button>
         </div>
@@ -136,16 +208,74 @@ function SavedCard({
   )
 }
 
+function TrackerCard({
+  item,
+  onUnsave,
+  onToggleStar,
+  onStatusChange,
+}: {
+  item: SavedItem
+  onUnsave: (opportunityId: string) => void
+  onToggleStar: (opportunityId: string, starred: boolean) => void
+  onStatusChange: (opportunityId: string, status: AppStatus) => void
+}) {
+  const opp = item.opportunities
+  if (!opp) return null
+
+  return (
+    <div className="rounded-xl border border-navy-600 bg-navy-800 p-4 transition-all hover:border-cyan-400/30">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <TypeBadge type={opp.type as Parameters<typeof TypeBadge>[0]['type']} />
+        <DeadlineBadge deadline={opp.deadline} customDeadline={item.custom_deadline} />
+      </div>
+
+      <Link href={`/opportunities/${opp.id}`}>
+        <h3 className="font-display text-sm font-semibold text-slate-100 leading-snug transition-colors hover:text-cyan-400">
+          {opp.title}
+        </h3>
+      </Link>
+      <p className="mt-0.5 text-xs text-slate-500">{opp.organization}</p>
+
+      {item.match_score != null && (
+        <div className="mt-2">
+          <ScoreBadge score={Math.round(item.match_score)} />
+        </div>
+      )}
+
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <select
+          value={item.status}
+          onChange={(e) => onStatusChange(opp.id, e.target.value as AppStatus)}
+          className="flex-1 rounded-lg border border-navy-600 bg-navy-900 px-2 py-1.5 text-xs text-slate-300 outline-none focus:border-cyan-400/50"
+        >
+          {STATUS_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+        <button
+          onClick={() => onToggleStar(opp.id, !item.starred)}
+          className={item.starred ? 'text-amber-400' : 'text-slate-600 hover:text-slate-400'}
+        >
+          <StarIcon filled={item.starred} />
+        </button>
+        <button onClick={() => onUnsave(opp.id)} className="text-slate-600 hover:text-rose-400 transition-colors">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function SavedPage() {
   const { savedIds, isAuthenticated, toggleSave } = useSaved()
-  // Anonymous fallback state
   const [anonSaved, setAnonSaved] = useState<Opportunity[]>([])
-  // Authenticated state
   const [authSaved, setAuthSaved] = useState<SavedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [sortMode, setSortMode] = useState<SortMode>('date')
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
 
-  // Fetch authenticated saved list
   const fetchAuthSaved = useCallback(async () => {
     const res = await fetch('/api/saved')
     if (res.ok) {
@@ -159,36 +289,23 @@ export default function SavedPage() {
     if (isAuthenticated) {
       fetchAuthSaved()
     } else {
-      // Anonymous: fetch by IDs from context
-      if (savedIds.length === 0) {
-        setAnonSaved([])
-        setLoading(false)
-        return
-      }
+      if (savedIds.length === 0) { setAnonSaved([]); setLoading(false); return }
       supabase
         .from('opportunities')
         .select('*')
         .in('id', savedIds)
         .eq('is_active', true)
-        .then(({ data }) => {
-          setAnonSaved((data as Opportunity[]) ?? [])
-          setLoading(false)
-        })
+        .then(({ data }) => { setAnonSaved((data as Opportunity[]) ?? []); setLoading(false) })
     }
   }, [isAuthenticated, savedIds, fetchAuthSaved])
 
   function handleUnsave(opportunityId: string) {
     toggleSave(opportunityId)
-    if (isAuthenticated) {
-      setAuthSaved((prev) => prev.filter((s) => s.opportunity_id !== opportunityId))
-    }
+    if (isAuthenticated) setAuthSaved((prev) => prev.filter((s) => s.opportunity_id !== opportunityId))
   }
 
   async function handleToggleStar(opportunityId: string, starred: boolean) {
-    // Optimistic update
-    setAuthSaved((prev) =>
-      prev.map((s) => (s.opportunity_id === opportunityId ? { ...s, starred } : s))
-    )
+    setAuthSaved((prev) => prev.map((s) => s.opportunity_id === opportunityId ? { ...s, starred } : s))
     await fetch(`/api/saved?opportunity_id=${opportunityId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -196,8 +313,18 @@ export default function SavedPage() {
     })
   }
 
-  // Sort authenticated saved items
-  const sortedAuthSaved = [...authSaved].sort((a, b) => {
+  async function handleStatusChange(opportunityId: string, status: AppStatus) {
+    setAuthSaved((prev) => prev.map((s) => s.opportunity_id === opportunityId ? { ...s, status } : s))
+    await fetch(`/api/saved?opportunity_id=${opportunityId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    })
+  }
+
+  const activeItems = authSaved.filter((s) => s.opportunities?.is_active !== false)
+
+  const sortedItems = [...activeItems].sort((a, b) => {
     if (sortMode === 'starred') {
       if (a.starred !== b.starred) return a.starred ? -1 : 1
       return new Date(b.saved_at).getTime() - new Date(a.saved_at).getTime()
@@ -208,7 +335,6 @@ export default function SavedPage() {
       if (b.match_score == null) return -1
       return b.match_score - a.match_score
     }
-    // date (default)
     return new Date(b.saved_at).getTime() - new Date(a.saved_at).getTime()
   })
 
@@ -216,6 +342,7 @@ export default function SavedPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      {/* Header */}
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display mb-1 text-2xl font-bold text-slate-50">Saved Opportunities</h1>
@@ -226,22 +353,44 @@ export default function SavedPage() {
           </p>
         </div>
 
-        {/* Sort controls — authenticated only */}
-        {isAuthenticated && authSaved.length > 1 && (
-          <div className="flex items-center gap-1 rounded-lg border border-navy-600 bg-navy-800 p-1">
-            {(['date', 'score', 'starred'] as SortMode[]).map((mode) => (
+        {isAuthenticated && authSaved.length > 0 && (
+          <div className="flex items-center gap-2">
+            {/* View toggle */}
+            <div className="flex items-center gap-1 rounded-lg border border-navy-600 bg-navy-800 p-1">
               <button
-                key={mode}
-                onClick={() => setSortMode(mode)}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                  sortMode === mode
-                    ? 'bg-navy-700 text-slate-100'
-                    : 'text-slate-500 hover:text-slate-300'
-                }`}
+                onClick={() => setViewMode('list')}
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${viewMode === 'list' ? 'bg-navy-700 text-slate-100' : 'text-slate-500 hover:text-slate-300'}`}
               >
-                {mode === 'date' ? 'Date Saved' : mode === 'score' ? 'Match Score' : 'Starred First'}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                </svg>
+                List
               </button>
-            ))}
+              <button
+                onClick={() => setViewMode('tracker')}
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${viewMode === 'tracker' ? 'bg-navy-700 text-slate-100' : 'text-slate-500 hover:text-slate-300'}`}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125Z" />
+                </svg>
+                Tracker
+              </button>
+            </div>
+
+            {/* Sort controls — list view only */}
+            {viewMode === 'list' && authSaved.length > 1 && (
+              <div className="flex items-center gap-1 rounded-lg border border-navy-600 bg-navy-800 p-1">
+                {(['date', 'score', 'starred'] as SortMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setSortMode(mode)}
+                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${sortMode === mode ? 'bg-navy-700 text-slate-100' : 'text-slate-500 hover:text-slate-300'}`}
+                  >
+                    {mode === 'date' ? 'Date' : mode === 'score' ? 'Score' : 'Starred'}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -250,18 +399,57 @@ export default function SavedPage() {
         <div className="py-16 text-center text-sm text-slate-500">Loading...</div>
       ) : hasItems ? (
         isAuthenticated ? (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {sortedAuthSaved
-              .filter((s) => s.opportunities?.is_active !== false)
-              .map((item) => (
-                <SavedCard
-                  key={item.id}
-                  item={item}
-                  onUnsave={handleUnsave}
-                  onToggleStar={handleToggleStar}
-                />
-              ))}
-          </div>
+          <>
+            <DeadlineUrgencyBanner items={activeItems} />
+
+            {viewMode === 'list' ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {sortedItems.map((item) => (
+                  <SavedCard
+                    key={item.id}
+                    item={item}
+                    onUnsave={handleUnsave}
+                    onToggleStar={handleToggleStar}
+                    onStatusChange={handleStatusChange}
+                  />
+                ))}
+              </div>
+            ) : (
+              /* Tracker: 3-column kanban */
+              <div className="grid gap-4 md:grid-cols-3">
+                {STATUS_COLUMNS.map((col) => {
+                  const colItems = activeItems.filter((item) => col.key.includes(item.status))
+                  return (
+                    <div key={col.label} className="rounded-xl border border-navy-600 bg-navy-900 p-4">
+                      {/* Column header */}
+                      <div className="mb-4 flex items-center justify-between">
+                        <h2 className={`font-display text-sm font-semibold ${col.color}`}>{col.label}</h2>
+                        <span className="rounded-full bg-navy-800 px-2 py-0.5 text-xs text-slate-500">
+                          {colItems.length}
+                        </span>
+                      </div>
+                      {/* Cards */}
+                      <div className="space-y-3">
+                        {colItems.length === 0 ? (
+                          <p className="py-6 text-center text-xs text-slate-700">No opportunities here yet</p>
+                        ) : (
+                          colItems.map((item) => (
+                            <TrackerCard
+                              key={item.id}
+                              item={item}
+                              onUnsave={handleUnsave}
+                              onToggleStar={handleToggleStar}
+                              onStatusChange={handleStatusChange}
+                            />
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {anonSaved.map((opp) => (
@@ -271,9 +459,7 @@ export default function SavedPage() {
         )
       ) : (
         <div className="rounded-xl border border-navy-600 bg-navy-800 px-6 py-16 text-center">
-          <p className="font-display text-lg font-medium text-slate-200">
-            No saved opportunities yet
-          </p>
+          <p className="font-display text-lg font-medium text-slate-200">No saved opportunities yet</p>
           <p className="mt-2 text-sm text-slate-500">
             Save opportunities from match results or while browsing — they&apos;ll appear here.
           </p>
