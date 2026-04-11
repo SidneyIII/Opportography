@@ -145,20 +145,20 @@ export default async function DashboardPage() {
 
       {/* ── Profile header ─────────────────────────────────────────────────── */}
       <div className="mb-8 rounded-2xl border border-navy-600 bg-navy-800 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-6">
+          <div className="flex items-center gap-5">
             {/* Avatar */}
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-400/10">
-              <span className="font-display text-lg font-bold text-cyan-400">{initials}</span>
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-cyan-400/40 bg-cyan-400/10">
+              <span className="font-display text-xl font-bold text-cyan-400">{initials}</span>
             </div>
             {/* Name + location */}
             <div>
-              <h1 className="font-display text-xl font-bold text-slate-50">
+              <h1 className="font-display text-2xl font-bold text-slate-50">
                 Welcome back, {firstName}
               </h1>
               {profile?.city && (
-                <p className="mt-0.5 flex items-center gap-1 text-sm text-slate-500">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-3.5 w-3.5">
+                <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-400">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
                   </svg>
@@ -168,23 +168,23 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="flex items-center gap-6">
+          {/* Stats + Edit Profile */}
+          <div className="flex flex-wrap items-center gap-6">
             <div className="text-center">
-              <p className="font-display text-2xl font-bold text-slate-50">{savedCount}</p>
-              <p className="text-xs text-slate-500">Saved</p>
+              <p className="font-display text-3xl font-bold text-slate-50">{savedCount}</p>
+              <p className="text-sm text-slate-500">Saved</p>
             </div>
             <div className="text-center">
-              <p className="font-display text-2xl font-bold text-slate-50">{inProgressCount}</p>
-              <p className="text-xs text-slate-500">In Progress</p>
+              <p className="font-display text-3xl font-bold text-slate-50">{inProgressCount}</p>
+              <p className="text-sm text-slate-500">In Progress</p>
             </div>
             <div className="text-center">
-              <p className="font-display text-2xl font-bold text-slate-50">{topMatches.length}</p>
-              <p className="text-xs text-slate-500">Matches</p>
+              <p className="font-display text-3xl font-bold text-slate-50">{topMatches.length}</p>
+              <p className="text-sm text-slate-500">Matches</p>
             </div>
             <Link
               href="/onboarding"
-              className="rounded-lg border border-navy-600 px-4 py-2 text-sm font-medium text-slate-400 transition-all hover:border-slate-500 hover:text-slate-200"
+              className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-5 py-2.5 text-sm font-semibold text-cyan-400 transition-all hover:bg-cyan-400/20 hover:border-cyan-400/50"
             >
               Edit Profile
             </Link>
