@@ -41,7 +41,7 @@ const FEATURE_CARDS = [
     title: 'AI Opportunity Assistant',
     description: 'Get personalized opportunity recommendations based on your goals, skills, and interests.',
     cta: 'Get Recommendations',
-    href: '#ai-guidance',
+    href: '/dashboard/ai',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
         <path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
