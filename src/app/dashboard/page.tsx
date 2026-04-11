@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createSupabaseServerClient, createSupabaseServiceClient } from '@/lib/supabase-server'
 import { ProfileCompleteness } from '@/components/ProfileCompleteness'
-import { ChatPanel } from '@/components/ChatPanel'
+
 import { DashboardMatchSection } from './DashboardMatchSection'
 
 
@@ -288,12 +288,6 @@ export default async function DashboardPage() {
           generated_at: m.generated_at,
         }))}
       />
-
-      {/* ── AI Guidance chatbot ────────────────────────────────────────────── */}
-      <section id="ai-guidance" className="mb-8">
-        <h2 className="font-display mb-4 text-lg font-bold text-slate-50">AI Guidance</h2>
-        <ChatPanel />
-      </section>
 
     </div>
   )
