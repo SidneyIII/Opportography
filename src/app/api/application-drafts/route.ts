@@ -11,7 +11,6 @@ const ALLOWED_MIME_TYPES = [
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
 function sanitizeFilename(name: string): boolean {
-  // Reject path traversal characters
   return !(/[/\\:*?"<>|]/.test(name) || name.includes('..'))
 }
 
@@ -55,8 +54,6 @@ ${text.slice(0, 8000)}`,
   })
 
   const raw = response.content[0]?.type === 'text' ? response.content[0].text.trim() : '[]'
-
-  // Strip markdown fences if model included them anyway
   const cleaned = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim()
 
   try {
@@ -67,18 +64,78 @@ ${text.slice(0, 8000)}`,
         typeof p.prompt_text === 'string' &&
         ['short_answer', 'essay', 'checkbox', 'other'].includes(p.field_type)
       )
-      .slice(0, 20) // cap at 20 prompts
+      .slice(0, 20)
   } catch {
     return []
   }
 }
 
-// POST /api/application-drafts — upload document, extract prompts, create draft
+// POST /api/application-drafts — upload document or paste text, extract prompts, create draft
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
 
+  const contentType = request.headers.get('content-type') ?? ''
+  const service = createSupabaseServiceClient()
+
+  // ── Paste-text mode ────────────────────────────────────────────────────────
+  if (contentType.includes('application/json')) {
+    let body: { text?: string; name?: string; opportunity_id?: string }
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid request.' }, { status: 400 })
+    }
+
+    const pastedText = body.text?.trim()
+    if (!pastedText) return NextResponse.json({ error: 'No text provided.' }, { status: 400 })
+    if (pastedText.length > 40000) {
+      return NextResponse.json({ error: 'Pasted text is too long (max ~40,000 characters).' }, { status: 400 })
+    }
+
+    let prompts: ExtractedPrompt[]
+    try {
+      prompts = await extractPrompts(pastedText)
+    } catch {
+      prompts = []
+    }
+
+    if (prompts.length === 0) {
+      return NextResponse.json({ error: 'No application prompts could be found in this text.' }, { status: 422 })
+    }
+
+    const draftName = body.name?.trim() || 'Pasted Application'
+
+    const { data: draft, error: draftError } = await service
+      .from('application_drafts')
+      .insert({
+        user_id: user.id,
+        opportunity_id: body.opportunity_id ?? null,
+        document_name: draftName,
+        name: draftName,
+      })
+      .select('id')
+      .single()
+
+    if (draftError) return NextResponse.json({ error: draftError.message }, { status: 500 })
+
+    const promptRows = prompts.map((p, i) => ({
+      draft_id: draft.id,
+      position: i,
+      prompt_text: p.prompt_text,
+      field_type: p.field_type,
+      word_limit: p.word_limit ?? null,
+      answer: null,
+    }))
+
+    const { error: promptsError } = await service.from('application_prompts').insert(promptRows)
+    if (promptsError) return NextResponse.json({ error: promptsError.message }, { status: 500 })
+
+    return NextResponse.json({ draft_id: draft.id, prompt_count: prompts.length })
+  }
+
+  // ── File upload mode ───────────────────────────────────────────────────────
   const formData = await request.formData()
   const file = formData.get('file') as File | null
   const opportunityId = formData.get('opportunity_id') as string | null
@@ -116,8 +173,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No application prompts could be found in this document.' }, { status: 422 })
   }
 
-  // Persist draft + prompts (no raw file stored)
-  const service = createSupabaseServiceClient()
+  const defaultName = file.name.replace(/\.(pdf|docx)$/i, '')
 
   const { data: draft, error: draftError } = await service
     .from('application_drafts')
@@ -125,6 +181,7 @@ export async function POST(request: Request) {
       user_id: user.id,
       opportunity_id: opportunityId ?? null,
       document_name: file.name,
+      name: defaultName,
     })
     .select('id')
     .single()
@@ -156,7 +213,7 @@ export async function GET() {
   const { data, error } = await service
     .from('application_drafts')
     .select(`
-      id, document_name, created_at, opportunity_id,
+      id, document_name, name, priority, deadline, created_at, opportunity_id,
       opportunities (id, title, organization),
       application_prompts (id, position, prompt_text, field_type, word_limit, answer)
     `)

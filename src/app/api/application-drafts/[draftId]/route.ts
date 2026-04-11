@@ -18,7 +18,7 @@ export async function GET(
   const { data, error } = await service
     .from('application_drafts')
     .select(`
-      id, document_name, created_at, opportunity_id,
+      id, document_name, name, priority, deadline, scratchpad, created_at, opportunity_id,
       opportunities (id, title, organization, description),
       application_prompts (id, position, prompt_text, field_type, word_limit, answer)
     `)
@@ -30,7 +30,9 @@ export async function GET(
   return NextResponse.json({ draft: data })
 }
 
-// PATCH /api/application-drafts/[draftId] — save answer for a prompt
+// PATCH /api/application-drafts/[draftId]
+// — save prompt answer:   { prompt_id, answer }
+// — save draft meta:      { name?, priority?, deadline?, scratchpad? }
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ draftId: string }> }
@@ -41,12 +43,6 @@ export async function PATCH(
   if (!user) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
 
   const body = await request.json()
-  const { prompt_id, answer } = body
-
-  if (!prompt_id || typeof answer !== 'string') {
-    return NextResponse.json({ error: 'prompt_id and answer are required.' }, { status: 400 })
-  }
-
   const service = createSupabaseServiceClient()
 
   // Verify ownership
@@ -59,11 +55,43 @@ export async function PATCH(
 
   if (!draft) return NextResponse.json({ error: 'Draft not found.' }, { status: 404 })
 
+  // Prompt answer update
+  if (body.prompt_id !== undefined) {
+    const { prompt_id, answer } = body
+    if (!prompt_id || typeof answer !== 'string') {
+      return NextResponse.json({ error: 'prompt_id and answer are required.' }, { status: 400 })
+    }
+
+    const { error } = await service
+      .from('application_prompts')
+      .update({ answer, updated_at: new Date().toISOString() })
+      .eq('id', prompt_id)
+      .eq('draft_id', draftId)
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  }
+
+  // Draft meta update
+  const allowed = ['name', 'priority', 'deadline', 'scratchpad'] as const
+  const updates: Record<string, unknown> = {}
+  for (const key of allowed) {
+    if (key in body) updates[key] = body[key]
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: 'No valid fields to update.' }, { status: 400 })
+  }
+
+  const PRIORITY_VALUES = ['high', 'medium', 'low', 'none']
+  if (updates.priority !== undefined && !PRIORITY_VALUES.includes(updates.priority as string)) {
+    return NextResponse.json({ error: 'Invalid priority value.' }, { status: 400 })
+  }
+
   const { error } = await service
-    .from('application_prompts')
-    .update({ answer, updated_at: new Date().toISOString() })
-    .eq('id', prompt_id)
-    .eq('draft_id', draftId)
+    .from('application_drafts')
+    .update(updates)
+    .eq('id', draftId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true })
@@ -88,7 +116,6 @@ export async function POST(
 
   const service = createSupabaseServiceClient()
 
-  // Fetch draft, prompt, opportunity, and user profile in parallel
   const [{ data: draft }, { data: profile }] = await Promise.all([
     service
       .from('application_drafts')
