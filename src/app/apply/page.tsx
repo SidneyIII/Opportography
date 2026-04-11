@@ -255,6 +255,123 @@ export default function ApplyPage() {
         )}
       </div>
 
+      {/* ── Empty-state feature preview ───────────────────────────────────── */}
+      {!loading && drafts.length === 0 && (
+        <div className="mb-8">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-600">
+            What you&apos;ll get inside each application
+          </p>
+
+          <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
+            {/* Left: editor preview */}
+            <div className="space-y-4">
+              {/* Header card */}
+              <div className="rounded-2xl border border-navy-600 bg-navy-800 p-5 opacity-60">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-slate-600">← Application Center</p>
+                    <p className="font-display mt-1 text-xl font-bold text-slate-400 italic">Application Name</p>
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-600">Priority:</span>
+                        <span className="rounded-full border border-slate-600/30 bg-slate-600/10 px-2.5 py-0.5 text-xs font-semibold text-slate-500">None</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-600">Deadline:</span>
+                        <span className="text-xs text-slate-500">N/A</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <span className="flex items-center gap-2 rounded-lg border border-violet-400/20 bg-violet-400/5 px-4 py-2 text-xs font-semibold text-violet-500">
+                      Quick Review
+                    </span>
+                    <span className="rounded-lg bg-slate-700 px-4 py-2 text-xs font-semibold text-slate-500">
+                      Export PDF
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-4 border-t border-navy-600 pt-4">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs text-slate-600">Application readiness</span>
+                    <span className="text-xs font-bold text-slate-600">0%</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-navy-700" />
+                  <p className="mt-1 text-xs text-slate-700">0 of 0 prompts answered</p>
+                </div>
+              </div>
+
+              {/* Prompt + answer preview */}
+              <div className="rounded-xl border border-navy-600/50 bg-navy-800/50 p-5 opacity-50">
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="rounded-full border border-slate-600/20 bg-slate-600/10 px-2.5 py-0.5 text-xs text-slate-600">essay</span>
+                </div>
+                <p className="text-sm text-slate-600 italic">Your application prompts will appear here — one at a time.</p>
+              </div>
+
+              <div className="rounded-xl border border-navy-600/50 bg-navy-800/50 p-4 opacity-50">
+                <div className="h-28 rounded-lg border border-navy-700 bg-navy-900 px-4 py-3 text-sm text-slate-700 italic">
+                  Upload or paste an application above to start writing...
+                </div>
+              </div>
+
+              {/* AI assist button previews */}
+              <div className="flex gap-3 opacity-40">
+                <span className="flex items-center gap-2 rounded-lg border border-cyan-400/20 bg-cyan-400/5 px-4 py-2.5 text-sm font-medium text-cyan-600">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+                  </svg>
+                  Brainstorm angles
+                </span>
+                <span className="flex items-center gap-2 rounded-lg border border-navy-600 bg-navy-800 px-4 py-2.5 text-sm font-medium text-slate-600">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                  </svg>
+                  Draft a response
+                </span>
+              </div>
+            </div>
+
+            {/* Right: sidebar preview */}
+            <div className="hidden lg:block">
+              <div className="rounded-xl border border-navy-600/50 bg-navy-800/50 overflow-hidden opacity-60">
+                {/* Tabs */}
+                <div className="flex border-b border-navy-600">
+                  {['Prompts', 'Write Assist', 'Notes'].map((label, i) => (
+                    <div key={label} className={`flex-1 py-2.5 text-center text-xs font-medium ${i === 0 ? 'border-b-2 border-cyan-400/40 text-cyan-600' : 'text-slate-600'}`}>
+                      {label}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Prompts preview */}
+                <div className="p-4 space-y-2">
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} className="flex items-center gap-2.5 rounded-lg px-3 py-2">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-navy-700 text-[10px] font-bold text-slate-600">{n}</span>
+                      <span className="h-2.5 flex-1 rounded bg-navy-700" />
+                    </div>
+                  ))}
+                  <p className="pt-2 text-center text-xs text-slate-700 italic">Upload above to see your prompts here</p>
+                </div>
+
+                {/* Write Assist tab preview */}
+                <div className="border-t border-navy-600 p-4">
+                  <p className="text-xs font-semibold text-slate-500 mb-1">Write Assist</p>
+                  <p className="text-xs text-slate-700">A writing coach that reviews your answers, suggests improvements, and helps you sound your best — available once you add an application.</p>
+                </div>
+
+                {/* Notes tab preview */}
+                <div className="border-t border-navy-600 p-4">
+                  <p className="text-xs font-semibold text-slate-500 mb-1">Notes</p>
+                  <p className="text-xs text-slate-700">Free-form scratchpad for each application — jot ideas, reminders, and key experiences to mention.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Draft list ─────────────────────────────────────────────────────── */}
       {loading ? (
         <p className="text-sm text-slate-500">Loading drafts...</p>
