@@ -25,6 +25,14 @@ export function isDeadlineSoon(deadline: string | null): boolean {
   return diffDays >= 0 && diffDays <= 14
 }
 
+export function isExpired(deadline: string | null): boolean {
+  if (!deadline) return false
+  const date = new Date(deadline + 'T00:00:00')
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return date < today
+}
+
 const identityLabels: Record<IdentityTag, string> = {
   low_income: 'Low-Income Students',
   first_gen: 'First-Generation Students',
@@ -96,8 +104,39 @@ export interface FilterOptions {
   type?: OpportunityType
   identity?: IdentityTag
   category?: CategoryTag
-  gradeLevel?: string
+  gradeLevel?: string // age group value or legacy grade value
   location?: string
+}
+
+// Age group values emitted by the filter UI
+const HS_GRADES = ['9', '10', '11', '12']
+const COLLEGE_AUDIENCE = ['college_undergraduate', 'college_graduate', 'college_all']
+const YOUNG_ADULT_AUDIENCE = ['young_adult', 'college_all', 'college_undergraduate']
+const ADULT_AUDIENCE = [
+  'adult_general', 'adult_workforce', 'adult_50_plus', 'professional',
+  'senior', 'parent_guardian', 'family', 'community_all', 'veteran',
+]
+
+function matchesAgeGroup(opp: Opportunity, gl: string): boolean {
+  const at = opp.audience_type ?? ''
+  switch (gl) {
+    case 'middle_school':
+      return opp.grade_levels.includes('8') || at === 'k12_middle' || at === 'k12_all'
+    case 'high_school':
+      return HS_GRADES.some((g) => opp.grade_levels.includes(g as '9' | '10' | '11' | '12')) ||
+        at === 'k12_high_school' || at === 'k12_all'
+    case 'college':
+      return opp.grade_levels.includes('college_freshman') || COLLEGE_AUDIENCE.includes(at)
+    case 'young_adult':
+      return YOUNG_ADULT_AUDIENCE.includes(at) || opp.grade_levels.includes('college_freshman')
+    case 'adult':
+      return ADULT_AUDIENCE.includes(at)
+    case 'all_ages':
+      return at === 'community_all' || at === 'family' || opp.identity_tags.length === 0
+    default:
+      // Legacy single-grade value (e.g. '9', '10', 'college_freshman')
+      return opp.grade_levels.includes(gl as import('./types').GradeLevel)
+  }
 }
 
 export function filterOpportunities(
@@ -122,7 +161,7 @@ export function filterOpportunities(
 
     if (filters.category && !opp.category_tags.includes(filters.category)) return false
 
-    if (filters.gradeLevel && !opp.grade_levels.includes(filters.gradeLevel as any)) return false
+    if (filters.gradeLevel && !matchesAgeGroup(opp, filters.gradeLevel)) return false
 
     if (filters.location && opp.location !== filters.location) return false
 
@@ -130,12 +169,39 @@ export function filterOpportunities(
   })
 }
 
+// Expired items always appear at the bottom regardless of sort order
+function expiredLast(a: Opportunity, b: Opportunity): number {
+  const aExp = isExpired(a.deadline)
+  const bExp = isExpired(b.deadline)
+  if (aExp && !bExp) return 1
+  if (!aExp && bExp) return -1
+  return 0
+}
+
 export function sortByDeadline(opps: Opportunity[]): Opportunity[] {
   return [...opps].sort((a, b) => {
+    const exp = expiredLast(a, b)
+    if (exp !== 0) return exp
     if (!a.deadline && !b.deadline) return 0
     if (!a.deadline) return 1
     if (!b.deadline) return -1
     return new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
+  })
+}
+
+export function sortByRecent(opps: Opportunity[]): Opportunity[] {
+  return [...opps].sort((a, b) => {
+    const exp = expiredLast(a, b)
+    if (exp !== 0) return exp
+    return new Date(b.date_added).getTime() - new Date(a.date_added).getTime()
+  })
+}
+
+export function sortByAlpha(opps: Opportunity[]): Opportunity[] {
+  return [...opps].sort((a, b) => {
+    const exp = expiredLast(a, b)
+    if (exp !== 0) return exp
+    return a.title.localeCompare(b.title)
   })
 }
 

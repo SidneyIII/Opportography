@@ -1,22 +1,30 @@
 import Link from 'next/link'
 import { Opportunity } from '@/lib/types'
-import { formatDeadline, isDeadlineSoon } from '@/lib/utils'
+import { formatDeadline, isDeadlineSoon, isExpired } from '@/lib/utils'
 import { TypeBadge } from './TypeBadge'
 import { BookmarkButton } from './BookmarkButton'
 
 export function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
   const { id, title, organization, description, type, deadline, location } = opportunity
+  const expired = isExpired(deadline)
 
   return (
     <Link
       href={`/opportunities/${id}`}
-      className="group block rounded-xl border border-navy-600 bg-navy-800 p-5 transition-all hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-400/5"
+      className={`group block rounded-xl border border-navy-600 bg-navy-800 p-5 transition-all hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-400/5 ${
+        expired ? 'opacity-55' : ''
+      }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <TypeBadge type={type} />
             <span className="text-xs text-slate-500">{location}</span>
+            {expired && (
+              <span className="rounded-full border border-slate-700 bg-slate-800 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                Expired
+              </span>
+            )}
           </div>
           <h3 className="font-display text-base font-semibold text-slate-100 transition-colors group-hover:text-cyan-400">
             {title}
@@ -25,7 +33,7 @@ export function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
           <p className="mt-2 line-clamp-2 text-sm text-slate-500">{description}</p>
           <p
             className={`mt-3 text-xs font-medium ${
-              isDeadlineSoon(deadline) ? 'text-rose-400' : 'text-slate-500'
+              expired ? 'text-slate-600' : isDeadlineSoon(deadline) ? 'text-rose-400' : 'text-slate-500'
             }`}
           >
             {formatDeadline(deadline)}

@@ -5,32 +5,46 @@ import { useEffect } from 'react'
 export function ScrollRevealInit() {
   useEffect(() => {
     // ── Load-time elements (hero + carousel) ──────────────────────────────
-    // Fire after a brief settle so the browser has painted the initial frame
     const loadEls = document.querySelectorAll<HTMLElement>('[data-reveal="load"]')
     const loadTimer = setTimeout(() => {
       loadEls.forEach((el) => el.classList.add('is-visible'))
     }, 150)
 
-    // ── Scroll-triggered elements ─────────────────────────────────────────
+    const scrollEls = Array.from(
+      document.querySelectorAll<HTMLElement>('.scroll-reveal:not([data-reveal="load"])')
+    )
+
+    // ── Fallback: no IntersectionObserver support ─────────────────────────
+    if (typeof IntersectionObserver === 'undefined') {
+      scrollEls.forEach((el) => el.classList.add('is-visible'))
+      return () => clearTimeout(loadTimer)
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('is-visible')
-            observer.unobserve(entry.target) // fire once only
+            observer.unobserve(entry.target)
           }
         })
       },
       {
-        threshold: 0.10,
-        rootMargin: '0px 0px -40px 0px', // trigger slightly before fully in view
+        threshold: 0.05, // lower threshold — fire as soon as 5% is visible
+        rootMargin: '0px 0px 0px 0px', // no negative margin — don't delay trigger
       },
     )
 
-    // Observe all scroll-reveal elements that are NOT load-triggered
-    document
-      .querySelectorAll<HTMLElement>('.scroll-reveal:not([data-reveal="load"])')
-      .forEach((el) => observer.observe(el))
+    scrollEls.forEach((el) => {
+      // If the element is already in the viewport when the page loads,
+      // add is-visible immediately rather than waiting for a scroll event
+      const rect = el.getBoundingClientRect()
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        el.classList.add('is-visible')
+      } else {
+        observer.observe(el)
+      }
+    })
 
     return () => {
       clearTimeout(loadTimer)

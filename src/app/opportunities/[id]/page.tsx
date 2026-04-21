@@ -5,6 +5,7 @@ import { formatDeadline, getCategoryLabel, getIdentitySlug, formatGradeLevel, ge
 import { TypeBadge } from '@/components/TypeBadge'
 import { IdentityBadge } from '@/components/IdentityBadge'
 import { BookmarkButton } from '@/components/BookmarkButton'
+import { BackButton } from '@/components/BackButton'
 
 export async function generateStaticParams() {
   const ids = await getAllOpportunityIds()
@@ -25,12 +26,7 @@ export default async function OpportunityDetailPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <Link
-        href="/opportunities"
-        className="mb-6 inline-flex items-center gap-1 text-sm text-slate-500 transition-colors hover:text-cyan-400"
-      >
-        &larr; Back to all opportunities
-      </Link>
+      <BackButton />
 
       <div className="rounded-xl border border-navy-600 bg-navy-800 p-6 shadow-xl shadow-navy-950/50 md:p-8">
         <div className="flex items-start justify-between gap-4">
