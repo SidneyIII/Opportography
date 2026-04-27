@@ -69,13 +69,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Opportunities — Cinematic Scroll Carousel — fade in on load */}
+      {/* Featured Opportunities — Auto-sliding carousel */}
       <div className="scroll-reveal" data-reveal="load">
         <CinematicCarousel />
       </div>
 
       {/* The Problem */}
-      <div className="scroll-reveal" style={{ marginTop: '-15vh' }}>
+      <div className="scroll-reveal">
         <TheProblem />
       </div>
 

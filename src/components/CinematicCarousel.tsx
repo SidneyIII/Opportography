@@ -1,19 +1,19 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 
 const CARDS = [
   {
-    catchphrase: "Don\u2019t want a four-year degree. Don\u2019t want to be stuck either.",
-    title: "Ironworkers Local 21 \u2014 Structural & Reinforcing Steel Apprenticeship (Nebraska + Iowa)",
+    catchphrase: "Don’t want a four-year degree. Don’t want to be stuck either.",
+    title: "Ironworkers Local 21 — Structural & Reinforcing Steel Apprenticeship (Nebraska + Iowa)",
     org: "Iron Workers International Local 21",
     description: "Ironworkers Local 21 apprentices earn $23.50/hr starting pay (65% of journeyman scale) from the first day on the job.",
     badge: "Union Apprenticeship",
     href: "/opportunities/b0f275ff-6f6d-42d8-86fe-385849a85ab4",
   },
   {
-    catchphrase: "Everyone said entrepreneurship was for people with connections. You don\u2019t have those yet.",
+    catchphrase: "Everyone said entrepreneurship was for people with connections. You don’t have those yet.",
     title: "1 Million Cups Omaha",
     org: "1MC Omaha",
     description: "This is one of the best low-barrier entry points into the Omaha entrepreneurship community for anyone with a business idea or who wants to meet founders.",
@@ -22,7 +22,7 @@ const CARDS = [
   },
   {
     catchphrase: "First in your family to figure this out. No roadmap.",
-    title: "Creighton University TRIO Classic Upward Bound \u2014 Free College Prep for Omaha HS Students",
+    title: "Creighton University TRIO Classic Upward Bound — Free College Prep for Omaha HS Students",
     org: "Creighton University TRIO Upward Bound Programs",
     description: "This program has changed thousands of lives in Omaha.",
     badge: "College Access",
@@ -40,13 +40,13 @@ const CARDS = [
     catchphrase: "You want real experience. Not just a class about it.",
     title: "Step Up Omaha! Summer Youth Employment",
     org: "Step Up Omaha / Empowerment Network",
-    description: "Youth earn $10\u2013$14/hr and complete two weeks of paid job training before starting at 80+ worksites including hospitals, banks, nonprofits, the zoo, and tech companies.",
+    description: "Youth earn $10–$14/hr and complete two weeks of paid job training before starting at 80+ worksites including hospitals, banks, nonprofits, the zoo, and tech companies.",
     badge: "Internship",
     href: "/opportunities/ac0af498-9315-47a3-b8d7-ceda8cb8190b",
   },
   {
-    catchphrase: "Everyone assumes tech is for someone else. It isn\u2019t.",
-    title: "AIM Institute Youth in Tech \u2014 Summer Code Camp",
+    catchphrase: "Everyone assumes tech is for someone else. It isn’t.",
+    title: "AIM Institute Youth in Tech — Summer Code Camp",
     org: "AIM Institute",
     description: "AIM serves low-income students specifically and connects participants to high-wage, high-demand tech career pathways.",
     badge: "Summer Program",
@@ -54,7 +54,7 @@ const CARDS = [
   },
   {
     catchphrase: "You want mentors who know where you came from.",
-    title: "100 Black Men of Omaha \u2014 Leadership Mentoring Academy (Free, Grades 9\u201312)",
+    title: "100 Black Men of Omaha — Leadership Mentoring Academy (Free, Grades 9–12)",
     org: "100 Black Men of Omaha, Inc.",
     description: "The LMA has had a 100% graduation rate since 2008, and 85% of LMA graduates attend post-secondary educational institutions.",
     badge: "Mentorship",
@@ -62,194 +62,185 @@ const CARDS = [
   },
 ]
 
-// Height per card in vh — controls how much scrolling each transition takes
-const VH_PER_CARD = 80
+const N = CARDS.length
+const INTERVAL_MS = 4800 // readable pace — ~5 seconds per card
 
 export function CinematicCarousel() {
-  const wrapperRef = useRef<HTMLDivElement>(null)
-  const stickyRef  = useRef<HTMLDivElement>(null)
-  const cardEls    = useRef<(HTMLDivElement | null)[]>([])
-  const dotEls     = useRef<(HTMLSpanElement | null)[]>([])
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [step, setStep] = useState(580)   // px between card centres; set on mount
+  const [paused, setPaused] = useState(false)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const touchStartX = useRef<number | null>(null)
+  // Track the timeout used to resume after a manual dot/swipe interaction
+  const resumeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // ── Compute card step from viewport width ────────────────────────────────
+  function computeStep() {
+    const cardW = Math.min(700, window.innerWidth * 0.84)
+    const peekPx = Math.max(52, window.innerWidth * 0.11)
+    const adjScale = 0.82
+    return window.innerWidth / 2 + adjScale * (cardW / 2) - peekPx
+  }
 
   useEffect(() => {
-    const N = CARDS.length
-    let raf = 0
-
-    function update() {
-      const wrapper = wrapperRef.current
-      if (!wrapper) return
-
-      // Distance from page top to wrapper top (accounts for any sticky nav)
-      const wrapperTop = wrapper.getBoundingClientRect().top + window.scrollY
-      const budget = wrapper.offsetHeight - window.innerHeight
-      if (budget <= 0) return
-
-      const into = window.scrollY - wrapperTop
-      const p = Math.max(0, Math.min(1, into / budget))
-
-      // Floating active-card index (e.g. 1.4 = between card 1 and 2)
-      const active = p * (N - 1)
-
-      // How wide a card actually renders (capped by viewport)
-      const cardW = Math.min(700, window.innerWidth * 0.84)
-      // How many px of adjacent cards peek in from each side
-      const peekPx = Math.max(52, window.innerWidth * 0.11)
-      // Scale applied to adjacent cards
-      const adjScale = 0.82
-      // Distance between card centers that produces exactly `peekPx` of the
-      // adjacent card visible at the viewport edge
-      const STEP = window.innerWidth / 2 + adjScale * (cardW / 2) - peekPx
-
-      cardEls.current.forEach((el, i) => {
-        if (!el) return
-        // Wrap to shortest distance so cards always appear on both sides
-        let off = i - active
-        if (off >  N / 2) off -= N
-        if (off < -N / 2) off += N
-        const absOff = Math.abs(off)
-        const tx     = off * STEP
-        const sc     = Math.max(0.62, 1 - absOff * 0.19)
-        const op     = Math.max(0,    1 - absOff * 0.48)
-        const bl     = Math.min(9,    absOff * 3.5)
-        const z      = Math.max(0,    10 - Math.round(absOff * 2))
-
-        el.style.transform = `translateX(${tx}px) scale(${sc})`
-        el.style.opacity   = String(Number(op.toFixed(3)))
-        el.style.filter    = bl > 0.1 ? `blur(${bl.toFixed(1)}px)` : 'none'
-        el.style.zIndex    = String(z)
-      })
-
-      const activeIdx = Math.round(active)
-      dotEls.current.forEach((el, i) => {
-        if (!el) return
-        el.style.background = i === activeIdx ? '#22d3ee' : 'rgba(148,163,184,0.25)'
-        el.style.transform  = i === activeIdx ? 'scale(1.7)' : 'scale(1)'
-      })
-    }
-
-    function onScroll() {
-      cancelAnimationFrame(raf)
-      raf = requestAnimationFrame(update)
-    }
-
-    // Run once on mount so cards are positioned before user scrolls
-    update()
-
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', update)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', update)
-      cancelAnimationFrame(raf)
-    }
+    setStep(computeStep())
+    function onResize() { setStep(computeStep()) }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  const totalHeight = `${CARDS.length * VH_PER_CARD}vh`
+  // ── Auto-advance ─────────────────────────────────────────────────────────
+  const advance = useCallback(() => {
+    setActiveIndex((i) => (i + 1) % N)
+  }, [])
+
+  useEffect(() => {
+    if (paused) {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      return
+    }
+    intervalRef.current = setInterval(advance, INTERVAL_MS)
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [paused, advance])
+
+  // ── Manual navigation (dots / swipe) ─────────────────────────────────────
+  function goTo(i: number) {
+    setActiveIndex(i)
+    // Pause briefly after a manual interaction, then resume
+    setPaused(true)
+    if (resumeTimeout.current) clearTimeout(resumeTimeout.current)
+    resumeTimeout.current = setTimeout(() => setPaused(false), 7000)
+  }
+
+  // ── Touch swipe ──────────────────────────────────────────────────────────
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null) return
+    const delta = touchStartX.current - e.changedTouches[0].clientX
+    if (Math.abs(delta) > 48) {
+      goTo(delta > 0 ? (activeIndex + 1) % N : (activeIndex - 1 + N) % N)
+    }
+    touchStartX.current = null
+  }
+
+  // ── Per-card style (same math as the original scroll version) ────────────
+  function cardStyle(i: number): React.CSSProperties {
+    let off = i - activeIndex
+    // Wrap to shortest arc so cards loop cleanly
+    if (off >  N / 2) off -= N
+    if (off < -N / 2) off += N
+    const absOff = Math.abs(off)
+    const tx  = off * step
+    const sc  = Math.max(0.62, 1 - absOff * 0.19)
+    const op  = Math.max(0,    1 - absOff * 0.48)
+    const bl  = Math.min(9,    absOff * 3.5)
+    const z   = Math.max(0,    10 - Math.round(absOff * 2))
+    return {
+      transform: `translateX(${tx}px) scale(${sc})`,
+      opacity: op,
+      filter: bl > 0.1 ? `blur(${bl.toFixed(1)}px)` : 'none',
+      zIndex: z,
+      transition: 'transform 0.75s cubic-bezier(0.4,0,0.2,1), opacity 0.75s ease, filter 0.75s ease',
+    }
+  }
 
   return (
-    <div ref={wrapperRef} style={{ height: totalHeight, overflowX: 'clip' }}>
+    // overflow-hidden prevents horizontal scrollbars from off-screen cards.
+    // No tall wrapper, no sticky — this section flows naturally in the page.
+    <div
+      className="overflow-hidden py-12 md:py-16"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Card track */}
       <div
-        ref={stickyRef}
-        className="sticky top-0 overflow-hidden flex flex-col items-center justify-center"
-        style={{ height: '100vh' }}
+        className="relative w-full flex justify-center overflow-visible"
+        style={{ height: 'clamp(360px, 52vh, 460px)' }}
       >
+        {CARDS.map((card, i) => (
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              top: 0,
+              width: 'min(700px, 84vw)',
+              willChange: 'transform, opacity, filter',
+              background: i % 2 === 0 ? 'rgba(14,28,54,0.95)' : 'rgba(8,40,60,0.95)',
+              borderColor: i % 2 === 0 ? 'rgba(45,64,112,0.7)' : 'rgba(34,211,238,0.25)',
+              ...cardStyle(i),
+            }}
+            className="rounded-lg border p-8 md:p-12"
+          >
+            {/* Catchphrase */}
+            <p className="font-display mb-5 text-xl font-bold italic leading-snug text-slate-50 md:text-2xl lg:text-3xl">
+              {card.catchphrase}
+            </p>
 
-        {/*
-          Card container — fixed height calibrated to the card content
-          (p-8/p-12 + catchphrase + rule + title + org + description + footer).
-          Cards are position:absolute within this container and shifted
-          horizontally by JS. The container gives this layout a real height
-          so the scroll hint can follow naturally below it.
-        */}
-        {/*
-          flex justify-center is required: it sets the CSS static position of
-          the absolute cards to the horizontal center of the container, so
-          translateX(0) from JS places the active card centered in the viewport.
-        */}
-        <div
-          className="relative shrink-0 w-full overflow-visible flex justify-center"
-          style={{ height: 'clamp(360px, 52vh, 460px)' }}
-        >
-          {CARDS.map((card, i) => (
-            <div
-              key={i}
-              ref={el => { cardEls.current[i] = el }}
-              style={{
-                position: 'absolute',
-                top: 0,
-                width: 'min(700px, 84vw)',
-                willChange: 'transform, opacity, filter',
-                background: i % 2 === 0 ? 'rgba(14, 28, 54, 0.95)' : 'rgba(8, 40, 60, 0.95)',
-                borderColor: i % 2 === 0 ? 'rgba(45, 64, 112, 0.7)' : 'rgba(34, 211, 238, 0.25)',
-              }}
-              className="rounded-lg border p-8 md:p-12"
-            >
-              {/* Catchphrase */}
-              <p className="font-display mb-5 text-xl font-bold italic leading-snug text-slate-50 md:text-2xl lg:text-3xl">
-                {card.catchphrase}
-              </p>
+            {/* Accent rule */}
+            <div className="mb-5 h-px w-10 bg-cyan-400" />
 
-              {/* Accent rule */}
-              <div className="mb-5 h-px w-10 bg-cyan-400" />
+            {/* Opportunity title */}
+            <p className="mb-1 text-base font-bold leading-snug text-slate-100 md:text-lg">
+              {card.title}
+            </p>
 
-              {/* Opportunity title */}
-              <h3 className="mb-1 text-base font-bold leading-snug text-slate-100 md:text-lg">
-                {card.title}
-              </h3>
+            {/* Organization */}
+            <p className="mb-4 text-[11px] uppercase tracking-wider text-slate-500">
+              {card.org}
+            </p>
 
-              {/* Organization */}
-              <p className="mb-4 text-[11px] uppercase tracking-wider text-slate-500">
-                {card.org}
-              </p>
+            {/* Description */}
+            <p className="mb-8 text-sm leading-relaxed text-slate-400 md:text-base">
+              {card.description}
+            </p>
 
-              {/* Description */}
-              <p className="mb-8 text-sm leading-relaxed text-slate-400 md:text-base">
-                {card.description}
-              </p>
-
-              {/* Footer row */}
-              <div className="flex items-center justify-between">
-                <span className="border border-cyan-400/30 px-3 py-1 text-[10px] uppercase tracking-widest text-cyan-400">
-                  {card.badge}
-                </span>
-                <Link
-                  href={card.href}
-                  className="text-sm text-cyan-400 transition-colors hover:text-cyan-300"
-                >
-                  View Opportunity &rarr;
-                </Link>
-              </div>
+            {/* Footer row */}
+            <div className="flex items-center justify-between">
+              <span className="border border-cyan-400/30 px-3 py-1 text-[10px] uppercase tracking-widest text-cyan-400">
+                {card.badge}
+              </span>
+              <Link
+                href={card.href}
+                className="text-sm text-cyan-400 transition-colors hover:text-cyan-300"
+              >
+                View Opportunity &rarr;
+              </Link>
             </div>
-          ))}
-        </div>
-
-        {/* Gap between card bottom and scroll hint — ~32px */}
-        <div className="shrink-0 h-8" />
-
-        {/* Scroll hint */}
-        <p className="shrink-0 text-[11px] uppercase tracking-widest text-slate-600">
-          scroll to explore
-        </p>
-
-        {/* Progress dots */}
-        <div className="shrink-0 mt-2 flex gap-2">
-          {CARDS.map((_, i) => (
-            <span
-              key={i}
-              ref={el => { dotEls.current[i] = el }}
-              style={{
-                display: 'inline-block',
-                width: 5,
-                height: 5,
-                borderRadius: '50%',
-                background: i === 0 ? '#22d3ee' : 'rgba(148,163,184,0.25)',
-                transform: i === 0 ? 'scale(1.7)' : 'scale(1)',
-                transition: 'background 0.35s ease, transform 0.35s ease',
-              }}
-            />
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
+
+      {/* Dot navigation */}
+      <div className="mt-8 flex items-center justify-center gap-2.5">
+        {CARDS.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => goTo(i)}
+            aria-label={`Go to card ${i + 1}`}
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: i === activeIndex ? '#22d3ee' : 'rgba(148,163,184,0.25)',
+              transform: i === activeIndex ? 'scale(1.6)' : 'scale(1)',
+              transition: 'background 0.35s ease, transform 0.35s ease',
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Pause indicator — only shown while hovered */}
+      <p
+        className="mt-3 text-center text-[11px] uppercase tracking-widest transition-opacity duration-300"
+        style={{ color: 'rgba(148,163,184,0.35)', opacity: paused ? 1 : 0 }}
+      >
+        paused
+      </p>
     </div>
   )
 }
