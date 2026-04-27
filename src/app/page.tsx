@@ -69,13 +69,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Opportunities — Auto-sliding carousel */}
-      <div className="scroll-reveal" data-reveal="load">
+      {/* Featured Opportunities — Continuous marquee carousel */}
+      <div className="scroll-reveal mt-16 md:mt-24" data-reveal="load">
         <CinematicCarousel />
       </div>
 
       {/* The Problem */}
-      <div className="scroll-reveal">
+      <div className="scroll-reveal mt-20 md:mt-28">
         <TheProblem />
       </div>
 

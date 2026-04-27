@@ -84,6 +84,12 @@ blockquote p {
   line-height: 1.5;
 }
 
+/* ── Infinite marquee for the opportunity carousel ───────────────────────── */
+@keyframes carousel-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
 /* Grid intersection dots */
 body::before {
   content: '';
