@@ -70,8 +70,8 @@ const CARD_MARGIN = 28    // px gap between cards
 const CARD_STRIDE = CARD_WIDTH + CARD_MARGIN   // 468px per card slot
 const TOTAL_WIDTH = CARDS.length * CARD_STRIDE // 3276px — one full set
 
-// Speed: px per millisecond (full loop in ~80 seconds)
-const SPEED = TOTAL_WIDTH / (80 * 1000)
+// Speed: px per millisecond (full loop in ~100 seconds)
+const SPEED = TOTAL_WIDTH / (100 * 1000)
 
 // Depth scaling: center card scales UP to SCALE_MAX, edges shrink to SCALE_MIN
 const DIST_REF    = 480
@@ -126,6 +126,13 @@ export function CinematicCarousel() {
       rafRef.current = requestAnimationFrame(tick)
     }
 
+    // Start with a card precisely centered so the first peak card isn't off-center
+    const initRect = outer.getBoundingClientRect()
+    const centerX = initRect.width / 2
+    const floatIdx = (centerX - CARD_WIDTH / 2) / CARD_STRIDE
+    const cardIdx = Math.ceil(Math.max(0, floatIdx))
+    offsetRef.current = cardIdx * CARD_STRIDE + CARD_WIDTH / 2 - centerX
+
     rafRef.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafRef.current)
   }, [])
@@ -142,6 +149,10 @@ export function CinematicCarousel() {
     <div
       ref={outerRef}
       className="overflow-hidden py-6"
+      style={{
+        maskImage: 'linear-gradient(to right, transparent, black 12%, black 88%, transparent)',
+        WebkitMaskImage: 'linear-gradient(to right, transparent, black 12%, black 88%, transparent)',
+      }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
