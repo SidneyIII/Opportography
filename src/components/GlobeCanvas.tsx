@@ -77,8 +77,8 @@ export function GlobeCanvas() {
       markers: MARKERS,
     })
 
-    canvas.style.width  = SIZE + 'px'
-    canvas.style.height = SIZE + 'px'
+    // Only set width; CSS aspect-square keeps height equal so the globe never distorts
+    canvas.style.width = SIZE + 'px'
 
     function animate() {
       phi += 0.0028
@@ -94,6 +94,6 @@ export function GlobeCanvas() {
   }, [])
 
   return (
-    <canvas ref={canvasRef} className="block mx-auto max-w-full" />
+    <canvas ref={canvasRef} className="block mx-auto max-w-full aspect-square" />
   )
 }
