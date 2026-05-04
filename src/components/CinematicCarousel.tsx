@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 
 const CARDS = [
@@ -62,44 +62,109 @@ const CARDS = [
   },
 ]
 
-// Duplicate for seamless infinite loop — translateX(-50%) lands exactly on the repeat
+// Duplicate for seamless loop — when offset reaches TOTAL_WIDTH, reset to 0
 const MARQUEE_CARDS = [...CARDS, ...CARDS]
 
-// Each card slot = card width + margin-right; -50% translateX = exactly 7 cards
-const CARD_WIDTH  = 440  // px
-const CARD_MARGIN = 28   // px  — margin-right between cards
-const DURATION    = 52   // seconds for one full loop  (~8.5 px/s — slow, readable)
+const CARD_WIDTH  = 440   // px
+const CARD_MARGIN = 28    // px gap between cards
+const CARD_STRIDE = CARD_WIDTH + CARD_MARGIN   // 468px per card slot
+const TOTAL_WIDTH = CARDS.length * CARD_STRIDE // 3276px — one full set
+
+// Speed: px per millisecond (full loop in ~57 seconds)
+const SPEED = TOTAL_WIDTH / (57 * 1000)
+
+// Depth scaling: card at center = 1.0, card at DIST_REF away = SCALE_MIN
+const DIST_REF   = 500
+const SCALE_MIN  = 0.80
+const OPACITY_MIN = 0.38
 
 export function CinematicCarousel() {
-  const [paused, setPaused] = useState(false)
+  const outerRef   = useRef<HTMLDivElement>(null)
+  const trackRef   = useRef<HTMLDivElement>(null)
+  const cardRefs   = useRef<(HTMLDivElement | null)[]>([])
+  const offsetRef  = useRef(0)       // current scroll offset in px
+  const lastTimeRef = useRef<number | null>(null)
+  const isPausedRef = useRef(false)
+  const rafRef     = useRef<number>(0)
+
+  useEffect(() => {
+    const outer = outerRef.current
+    const track = trackRef.current
+    if (!outer || !track) return
+
+    function tick(now: number) {
+      if (lastTimeRef.current === null) lastTimeRef.current = now
+      const dt = Math.min(now - lastTimeRef.current, 80) // cap to avoid jumps on tab resume
+      lastTimeRef.current = now
+
+      if (!isPausedRef.current) {
+        offsetRef.current += SPEED * dt
+        // Seamless reset — second set of cards has identical content to first
+        if (offsetRef.current >= TOTAL_WIDTH) offsetRef.current -= TOTAL_WIDTH
+      }
+
+      const tx = -offsetRef.current
+      track!.style.transform = `translateX(${tx}px)`
+
+      // Scale each card based on its computed distance from the container center
+      const outerRect = outer!.getBoundingClientRect()
+      const viewCenter = outerRect.left + outerRect.width / 2
+
+      cardRefs.current.forEach((el, i) => {
+        if (!el) return
+        // Card's center in viewport coords (computed from JS offset, not DOM query)
+        const cardCenter = outerRect.left + tx + i * CARD_STRIDE + CARD_WIDTH / 2
+        const dist = Math.abs(cardCenter - viewCenter)
+        const t = Math.min(dist / DIST_REF, 1)
+        const scale   = SCALE_MIN + (1 - SCALE_MIN) * (1 - t)
+        const opacity = OPACITY_MIN + (1 - OPACITY_MIN) * (1 - t)
+        el.style.transform = `scale(${scale.toFixed(4)})`
+        el.style.opacity   = opacity.toFixed(3)
+      })
+
+      rafRef.current = requestAnimationFrame(tick)
+    }
+
+    rafRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [])
+
+  function handleMouseEnter() {
+    if (window.matchMedia('(hover: hover)').matches) isPausedRef.current = true
+  }
+
+  function handleMouseLeave() {
+    isPausedRef.current = false
+  }
 
   return (
     <div
+      ref={outerRef}
       className="overflow-hidden"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      {/* Marquee track — width: max-content so translateX(-50%) = exactly half */}
+      {/* Track — translateX driven by rAF loop */}
       <div
+        ref={trackRef}
         style={{
           display: 'flex',
           width: 'max-content',
-          animationName: 'carousel-marquee',
-          animationDuration: `${DURATION}s`,
-          animationTimingFunction: 'linear',
-          animationIterationCount: 'infinite',
-          animationPlayState: paused ? 'paused' : 'running',
+          willChange: 'transform',
         }}
       >
         {MARQUEE_CARDS.map((card, i) => (
           <div
             key={i}
+            ref={(el) => { cardRefs.current[i] = el }}
             style={{
               width: CARD_WIDTH,
               marginRight: CARD_MARGIN,
               flexShrink: 0,
               background: i % 2 === 0 ? 'rgba(14,28,54,0.95)' : 'rgba(8,40,60,0.95)',
               borderColor: i % 2 === 0 ? 'rgba(45,64,112,0.7)' : 'rgba(34,211,238,0.25)',
+              transformOrigin: 'center center',
+              willChange: 'transform, opacity',
             }}
             className="rounded-xl border p-7 flex flex-col"
           >
@@ -134,7 +199,6 @@ export function CinematicCarousel() {
               <Link
                 href={card.href}
                 className="text-xs text-cyan-400 transition-colors hover:text-cyan-300"
-                // Prevent the link click from resuming the marquee
                 onClick={(e) => e.stopPropagation()}
               >
                 View &rarr;
@@ -143,14 +207,6 @@ export function CinematicCarousel() {
           </div>
         ))}
       </div>
-
-      {/* Pause hint — fades in on hover */}
-      <p
-        className="mt-3 text-center text-[10px] uppercase tracking-widest transition-opacity duration-300"
-        style={{ color: 'rgba(148,163,184,0.3)', opacity: paused ? 1 : 0 }}
-      >
-        paused — hover to read, scroll to continue
-      </p>
     </div>
   )
 }

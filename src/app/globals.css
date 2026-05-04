@@ -90,6 +90,13 @@ blockquote p {
   to   { transform: translateX(-50%); }
 }
 
+/* Pause only on devices that support real hover (not touch) */
+@media (hover: hover) {
+  .carousel-outer:hover .carousel-track {
+    animation-play-state: paused;
+  }
+}
+
 /* Grid intersection dots */
 body::before {
   content: '';
