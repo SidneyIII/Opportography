@@ -70,13 +70,14 @@ const CARD_MARGIN = 28    // px gap between cards
 const CARD_STRIDE = CARD_WIDTH + CARD_MARGIN   // 468px per card slot
 const TOTAL_WIDTH = CARDS.length * CARD_STRIDE // 3276px — one full set
 
-// Speed: px per millisecond (full loop in ~57 seconds)
-const SPEED = TOTAL_WIDTH / (57 * 1000)
+// Speed: px per millisecond (full loop in ~80 seconds)
+const SPEED = TOTAL_WIDTH / (80 * 1000)
 
-// Depth scaling: card at center = 1.0, card at DIST_REF away = SCALE_MIN
-const DIST_REF   = 500
-const SCALE_MIN  = 0.80
-const OPACITY_MIN = 0.38
+// Depth scaling: center card scales UP to SCALE_MAX, edges shrink to SCALE_MIN
+const DIST_REF    = 480
+const SCALE_MAX   = 1.13   // center card is 13% larger than natural size
+const SCALE_MIN   = 0.72   // edge cards shrink noticeably
+const OPACITY_MIN = 0.28
 
 export function CinematicCarousel() {
   const outerRef   = useRef<HTMLDivElement>(null)
@@ -116,7 +117,7 @@ export function CinematicCarousel() {
         const cardCenter = outerRect.left + tx + i * CARD_STRIDE + CARD_WIDTH / 2
         const dist = Math.abs(cardCenter - viewCenter)
         const t = Math.min(dist / DIST_REF, 1)
-        const scale   = SCALE_MIN + (1 - SCALE_MIN) * (1 - t)
+        const scale   = SCALE_MIN + (SCALE_MAX - SCALE_MIN) * (1 - t)
         const opacity = OPACITY_MIN + (1 - OPACITY_MIN) * (1 - t)
         el.style.transform = `scale(${scale.toFixed(4)})`
         el.style.opacity   = opacity.toFixed(3)
@@ -140,7 +141,7 @@ export function CinematicCarousel() {
   return (
     <div
       ref={outerRef}
-      className="overflow-hidden"
+      className="overflow-hidden py-6"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
