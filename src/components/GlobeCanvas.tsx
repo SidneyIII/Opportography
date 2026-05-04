@@ -55,7 +55,7 @@ export function GlobeCanvas() {
     if (!canvas) return
 
     const parent = canvas.parentElement
-    const SIZE = Math.min(420, parent ? parent.clientWidth : 420)
+    const SIZE = Math.min(500, parent ? parent.clientWidth : 500)
     const dpr  = window.devicePixelRatio || 1
 
     let phi = 0.6  // start showing Americas/Atlantic
@@ -81,7 +81,7 @@ export function GlobeCanvas() {
     canvas.style.height = SIZE + 'px'
 
     function animate() {
-      phi += 0.004
+      phi += 0.0028
       globe.update({ phi })
       rafId = requestAnimationFrame(animate)
     }
@@ -94,9 +94,18 @@ export function GlobeCanvas() {
   }, [])
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="max-w-full drop-shadow-[0_0_40px_rgba(34,211,238,0.20)]"
-    />
+    <div className="relative flex items-center justify-center">
+      {/* Atmosphere glow ring — radial gradient from ~75% to ~122% of globe radius */}
+      <div
+        className="pointer-events-none absolute rounded-full"
+        style={{
+          width: '140%',
+          height: '140%',
+          background:
+            'radial-gradient(circle, transparent 52%, rgba(34,211,238,0.04) 66%, rgba(34,211,238,0.18) 82%, transparent 100%)',
+        }}
+      />
+      <canvas ref={canvasRef} className="relative max-w-full" />
+    </div>
   )
 }
