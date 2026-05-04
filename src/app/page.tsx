@@ -40,7 +40,7 @@ export default async function HomePage() {
               </span>
             </div>
 
-            <h1 className="font-display mt-1 text-4xl font-bold leading-[1.1] tracking-tight text-slate-50 sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
+            <h1 className="font-display mt-1 text-4xl font-bold leading-[1.1] tracking-tight text-slate-50 sm:text-5xl md:text-6xl lg:text-8xl">
               Opport<span className="text-cyan-400">ography</span>
             </h1>
 
