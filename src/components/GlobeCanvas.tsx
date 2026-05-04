@@ -94,18 +94,6 @@ export function GlobeCanvas() {
   }, [])
 
   return (
-    <div className="relative flex items-center justify-center">
-      {/* Atmosphere glow ring — radial gradient from ~75% to ~122% of globe radius */}
-      <div
-        className="pointer-events-none absolute rounded-full"
-        style={{
-          width: '140%',
-          height: '140%',
-          background:
-            'radial-gradient(circle, transparent 52%, rgba(34,211,238,0.04) 66%, rgba(34,211,238,0.18) 82%, transparent 100%)',
-        }}
-      />
-      <canvas ref={canvasRef} className="relative max-w-full" />
-    </div>
+    <canvas ref={canvasRef} className="block mx-auto max-w-full" />
   )
 }
