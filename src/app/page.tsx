@@ -44,7 +44,7 @@ export default async function HomePage() {
               Opport<span className="text-cyan-400">ography</span>
             </h1>
 
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-400 sm:text-lg md:text-xl lg:text-xl xl:text-2xl">
+            <p className="mt-4 max-w-xl mx-auto md:mx-0 text-base leading-relaxed text-slate-400 sm:text-lg md:text-xl lg:text-xl xl:text-2xl">
               Opportunity + Cartography. Like a map for your future — every scholarship,
               internship, program, and resource in your city — all in one place.
             </p>
